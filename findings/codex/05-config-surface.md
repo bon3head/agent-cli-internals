@@ -17,7 +17,7 @@ before relying on a specific key.
   overrides. (Sources: `ConfigLayerSource` enum in the 0.149.0 app-server schema + CLI help.)
 - Key recovered fields (0.155.1; defaults UNCONFIRMED for ~90 of 101):
   - `model`, `review_model`, `model_provider`, `model_context_window`
-  - `sandbox`, `approval_policy`, `approvals_reviewer` (`user | auto_review | guardian_subagent` — CONFIRMED schema enum)
+  - `sandbox`, `approval_policy`, `approvals_reviewer` (`user | auto_review | guardian_subagent` — CONFIRMED schema enum; `guardian_subagent` is the legacy name per the schema description, `auto_review` is current: "a carefully prompted subagent to gather relevant context and apply a risk-based decision framework before approving or denying the request")
   - `[model_providers.<name>]`: `base_url`, `env_key`, `wire_api`, `env_http_headers`, `query_params`, retry/timeout knobs, `requires_openai_auth`, `supports_websockets`, `supports_standalone_web_search`, `aws`… (`ModelProviderInfo` 18 elements, 12/18 recovered)
   - `[mcp_servers.*]`: per-server `RawMcpServerConfig` (28 fields; see Finding 09)
   - `[shell_environment_policy]` 7/7: `inherit`, `ignore_default_excludes`, `set`, `include_only`, `filters`, `max_depth`, `experimental_use_profile`
