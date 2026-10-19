@@ -1,6 +1,6 @@
-# 08 — Embedded docs ARE the runtime skill corpus (10/12 byte-identical on disk)
+# 08. Embedded docs ARE the runtime skill corpus (10/12 byte-identical on disk)
 
-**Trial status:** CONFIRMED at suite level (17/17 on the same binary). Trial spot-check counted the on-disk corpus present (`~/.gemini/antigravity-cli/builtin/skills/`: 9 skill dirs, 19 `.md` files); the 10/12 byte-identity claim was not re-diffed in the trial ("out of scope") — it stands on lane A2's verified carves.
+**Trial status:** CONFIRMED at suite level (17/17 on the same binary). Trial spot-check counted the on-disk corpus present (`~/.gemini/antigravity-cli/builtin/skills/`: 9 skill dirs, 19 `.md` files); the 10/12 byte-identity claim was not re-diffed in the trial ("out of scope"); it stands on lane A2's verified carves.
 
 ---
 
@@ -18,10 +18,10 @@ All 12 embedded customization docs were carved from the binary with exact rodata
 | `docs/mcp_servers.md` | 93516168 → 93519546 | 3,378 | byte-identical |
 | `docs/json_configs.md` | 94017651 → 94022555 | 4,904 | byte-identical |
 | `antigravity_guide/SKILL.md` | 93426046 → 93429069 | 3,023 | byte-identical |
-| `references/cli.md` | 93044894 → 93048272 | 3,378 | **DIVERGES**: binary copy has a 13-line sed-tool block (lines 42–54) the disk copy lacks — binary is the newer/superset copy |
+| `references/cli.md` | 93044894 → 93048272 | 3,378 | **DIVERGES**: binary copy has a 13-line sed-tool block (lines 42–54) the disk copy lacks; binary is the newer/superset copy |
 | `references/ide.md` | 93522931 → 93526330 | 3,399 | byte-identical |
 | `references/app.md` | 93666982 → 93670834 | 3,852 | byte-identical |
-| `references/sdk.md` | 93441408 → 93444534 | 3,126 | **DIVERGES**: binary copy is missing the closing fence — truncated by one line (cosmetic) |
+| `references/sdk.md` | 93441408 → 93444534 | 3,126 | **DIVERGES**: binary copy is missing the closing fence; truncated by one line (cosmetic) |
 
 The carve also fully documents the customization system: 5 types (rules / skills / plugins / hooks / MCP servers), discovery roots (workspace `.agents/` walking CWD→repo root, global `~/.gemini/config/`), load precedence, progressive disclosure (skills inject name+description only), budgets (24KB/file, 20k-token rules budget), and the Python SDK (`pip install google-antigravity`; `Agent` + `LocalAgentConfig` + `CapabilitiesConfig`; repo `github.com/google-antigravity/antigravity-sdk-python`).
 
@@ -39,15 +39,15 @@ Lane A2 (config schema). Marker-anchored carve technique (strings interleaved wi
 
 ## 3. WHAT IT UNLOCKS
 
-The skills and guides the agent reads at runtime are not downloaded from anywhere — they are baked into the program itself, and ten of twelve survive the trip from inside the binary to the files on your disk byte-for-byte. That means the documentation is version-locked to the exact binary you run: the rules you see are the rules the agent was built with. And where the two copies differ, the binary is the newer one — it already knows a sed-based editing tool the on-disk copy never got.
+The skills and guides the agent reads at runtime are not downloaded from anywhere: they are baked into the program itself, and ten of twelve survive the trip from inside the binary to the files on your disk byte-for-byte. That means the documentation is version-locked to the exact binary you run: the rules you see are the rules the agent was built with. And where the two copies differ, the binary is the newer one: it already knows a sed-based editing tool the on-disk copy never got.
 
 ---
 
 ## 4. HOW A DEVELOPER BUILDS ON IT
 
-- **Author skills with the embedded schema:** `skills/<name>/SKILL.md` with required frontmatter `name` (lowercase-hyphenated, unique) + `description` (third-person, what + when — the agent reads this to decide activation). Optional `scripts/`, `examples/`, `resources/`, `references/`.
+- **Author skills with the embedded schema:** `skills/<name>/SKILL.md` with required frontmatter `name` (lowercase-hyphenated, unique) + `description` (third-person, what + when: the agent reads this to decide activation). Optional `scripts/`, `examples/`, `resources/`, `references/`.
 - **Rules:** `GEMINI.md`/`AGENTS.md` at project root (no frontmatter, always active for directory scope); hard budgets 24,000 bytes/file, 20,000-token aggregate rules budget.
 - **Plugins:** `plugins/<name>/plugin.json` + enable-state in `config.json` → `{plugins: {"<dir-name>": {enabled: true|false}}}`. `agy plugin install|enable|disable`.
-- **MCP servers:** `~/.gemini/config/mcp_config.json` → `{mcpServers: {"<id>": {command, args?, env?} | {url}}}`. Legacy HTTP+SSE unsupported — use a stdio bridge like `mcp-remote` for SSE-only servers.
+- **MCP servers:** `~/.gemini/config/mcp_config.json` → `{mcpServers: {"<id>": {command, args?, env?} | {url}}}`. Legacy HTTP+SSE unsupported: use a stdio bridge like `mcp-remote` for SSE-only servers.
 - **Explicit registration:** `skills.json` / `plugins.json` with `{entries: [{path, include_only?, exclude?}], inherits: [{path, include_only?, exclude?}]}` for customizations outside default discovery roots.
-- **Diff binary vs disk after updates:** re-carve at the offsets above and diff against `builtin/skills/` — divergences (like the cli.md sed-tool block) are advance notice of features the shipped docs haven't caught up to.
+- **Diff binary vs disk after updates:** re-carve at the offsets above and diff against `builtin/skills/`: divergences (like the cli.md sed-tool block) are advance notice of features the shipped docs haven't caught up to.

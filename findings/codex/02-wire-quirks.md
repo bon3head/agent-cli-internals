@@ -1,8 +1,8 @@
-# Finding 02 — Wire-envelope quirks that break naive JSON-RPC clients
+# 02. Wire-envelope quirks that break naive JSON-RPC clients
 
 **Version pin:** all claims verified against the schema set pinned to **0.149.0**
 (byte-identical regen confirmed in trials, 2026-10-18). Wire behavior (actual frames on a
-live socket) is UNVERIFIED — no live app-server session was driven; "NDJSON" below is
+live socket) is UNVERIFIED: no live app-server session was driven; "NDJSON" below is
 convention inference, not observed fact.
 
 ## 1. WHAT WAS FOUND
@@ -28,7 +28,7 @@ Byte-exact schema quote (0.149.0, `~/workspace/rea-codex/app-server-schema/JSONR
 }
 ```
 
-No `jsonrpc` property exists anywhere in the schema — and a client that *mandates* the
+No `jsonrpc` property exists anywhere in the schema, and a client that *mandates* the
 version field (most off-the-shelf JSON-RPC libraries reject requests without it) will fail.
 Client→server request branches additionally require `params` (`["id","method","params"]`).
 
@@ -52,14 +52,14 @@ A driver is not fire-and-forget. Any restrictive `approvalPolicy` (anything othe
 `"never"`) obligates the client to implement these handlers.
 
 **c) Multi-client concurrency is designed in, not bolted on.**
-- `turn/steer` carries a required `expectedTurnId` precondition — it fails unless the value
+- `turn/steer` carries a required `expectedTurnId` precondition: it fails unless the value
   matches the currently active turn.
 - Approval resolutions correlate via `serverRequest/resolved{threadId, requestId}`.
 - `initialize` capabilities include `optOutNotificationMethods: string[]` to suppress
   specific notification methods.
 
 **CONFIRMED vs INFERENCE:** (a)–(c) are CONFIRMED from the emitted schema. Whether real
-live frames are newline-delimited JSON (NDJSON) is INFERENCE from stdio JSON-RPC convention —
+live frames are newline-delimited JSON (NDJSON) is INFERENCE from stdio JSON-RPC convention:
 the schema is silent on framing. Actual approval-callback timing, and whether the server
 actually rejects connections with multiple racing clients, is UNVERIFIED (no live session).
 
@@ -84,15 +84,15 @@ branches in the v1 bundle and correlated each reverse request with its `*Respons
 A correct Codex driver can be written once and won't mysteriously stall. Knowing the missing
 `jsonrpc` field up front saves the "why does the server ignore my perfectly valid requests"
 debugging loop. Knowing approvals are reverse-RPC tells you the driver needs a request
-handler, not just an event listener — and that `approvalPolicy: "never"` is the escape
+handler, not just an event listener, and that `approvalPolicy: "never"` is the escape
 hatch for prototypes. The `expectedTurnId` + `serverRequest/resolved` correlation design
 means dashboards, CLIs, and bots can safely share one Codex thread without stepping on
 each other.
 
 ## 4. HOW A DEVELOPER BUILDS ON IT
 
-1. Use a minimal hand-rolled JSON-RPC frame writer; do not use a strict JSON-RPC 2.0 library
-   — or configure it to omit/ignore the `jsonrpc` version field on both send and receive.
+1. Use a minimal hand-rolled JSON-RPC frame writer; do not use a strict JSON-RPC 2.0 library,
+   or configure it to omit/ignore the `jsonrpc` version field on both send and receive.
 2. IDs: `RequestId` = `string | int64`; pick one and be consistent.
 3. Frame assumption for stdio: newline-delimited JSON. Verify at runtime against a live
    `codex app-server --listen stdio://` before shipping.

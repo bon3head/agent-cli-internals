@@ -1,4 +1,4 @@
-# 04 — 33 hook events, 5 hook types (C1)
+# 04. 33 hook events, 5 hook types (C1)
 
 **Target pinned:** claude CLI 2.1.287 · Bun-compiled ELF 64-bit x86-64, NOT stripped · 244,317,368 bytes ·
 `/home/hatch/.local/share/claude/versions/2.1.287`
@@ -28,14 +28,14 @@ SubagentStop, PermissionDenied. 21 events carry `session_id` on stdin.
 Key stdin shapes (all from the `hook_event_name:x("…")` schemas):
 - `PostToolUse` carries `duration_ms` ("Tool execution time in milliseconds. Excludes
   permission-prompt and hook time") and `tool_response`.
-- `PostToolBatch`: `tool_calls[]` — "Fired once after every tool call in a batch has
+- `PostToolBatch`: `tool_calls[]`; "Fired once after every tool call in a batch has
   resolved… PostToolUse fires per-tool and may run concurrently… exactly once with the full batch."
 - `SessionStart`: `source` ∈ `startup|resume|clear|compact|fork`, `model?`, `agent_type?`;
   its output can set `watchPaths[]` ("Absolute paths to watch for FileChanged hooks") and
   `reloadSkills` ("Re-scan skill and command directories").
 - `InstructionsLoaded`: `file_path`, `memory_type` ∈ `User|Project|Local|Managed`,
   `load_reason` ∈ `session_start|nested_traversal|path_glob_match|include|compact`.
-- `Elicitation`: `mcp_server_name`, `message`, `mode?` ∈ `form|url` — fired when an MCP
+- `Elicitation`: `mcp_server_name`, `message`, `mode?` ∈ `form|url`; fired when an MCP
   server requests user input.
 - `FileChanged`: `file_path`, `event` ∈ `change|add|unlink`; `CwdChanged`: `old_cwd`, `new_cwd`;
   `ConfigChange`: `source`, `file_path?`.
@@ -61,13 +61,13 @@ sequence (e.g. OSC 9 / OSC 777 desktop-notification) for Claude Code to emit on 
 behalf. Only notification/title OSCs (0, 1, 2, 9, 99, 777) and BEL are permitted; anything
 else is dropped"), `retry` (PermissionDenied), `watchPaths`/`reloadSkills` (SessionStart),
 `additionalContext`/`classifierContext` (PostToolUse), `suppressOriginalPrompt`
-(UserPromptSubmit), `displayContent` (MessageDisplay — replaces the delta on screen without
+(UserPromptSubmit), `displayContent` (MessageDisplay: replaces the delta on screen without
 changing the stored message).
 
 ## 2. HOW IT WAS FOUND
 
 - Lane C1: a quoted-enum-array regex (`(?:\"([A-Za-z0-9_]+)\",){4,}\"..."`) yielded the
-  33-event master list — 19 events beyond the known 14 (`scratchpad-c1.md`, 01:58).
+  33-event master list: 19 events beyond the known 14 (`scratchpad-c1.md`, 01:58).
 - All stdin JSON shapes extracted from the `hook_event_name:x("…")` schema definitions and
   dumped to `hook-schemas.txt`; the five hook-type schemas dumped from `_p()`
   (`~/workspace/rea-claude/deep-dive/hook-schemas.txt`).
@@ -77,8 +77,8 @@ changing the stored message).
 
 ## 3. WHAT IT UNLOCKS
 
-In plain terms: hooks are not "run a linter after edits" anymore. There is a real event bus —
-file changes, directory changes, config changes, model switches, MCP elicitation requests —
+In plain terms: hooks are not "run a linter after edits" anymore. There is a real event bus:
+file changes, directory changes, config changes, model switches, MCP elicitation requests,
 each arriving as structured JSON on stdin. That is the wiring for reactive local tooling:
 something that watches a directory and acts, something that notices the config changed and
 re-syncs, something that answers an MCP server's question programmatically.
@@ -95,12 +95,12 @@ re-syncs, something that answers an MCP server's question programmatically.
   - `Elicitation` → `{"mcp_server_name": ..., "message": ..., "mode": "form|url"}`:
     answer MCP server input requests programmatically via the output
     `{"action": "accept|decline|cancel", "content": ...}`.
-  - `PostToolBatch`: aggregate analytics — fires exactly once per batch after all parallel
+  - `PostToolBatch`: aggregate analytics; fires exactly once per batch after all parallel
     tool calls resolve (unlike per-tool PostToolUse).
 - **HTTP hooks:** set `allowedHttpHookUrls: ["https://hooks.example.com/*"]` plus
   `httpHookAllowedEnvVars` in settings, then declare hooks of type `http` to fan events to a
-  local/remote endpoint — no shell process needed.
+  local/remote endpoint: no shell process needed.
 - **Async wake:** `asyncRewake: true` runs a hook in the background and wakes the model on
-  exit code 2 — the pattern for long-running watchers that need to report back.
+  exit code 2: the pattern for long-running watchers that need to report back.
 - **Blocking:** `PreToolUse` output `{"permissionDecision": "allow|deny|ask|defer"}` lets a
   hook make the permission call itself; `defer` means "let the normal flow decide."

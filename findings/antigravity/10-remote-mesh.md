@@ -1,4 +1,4 @@
-# 10 — Remote-control mesh + mic-serve + sandbox IPC mapped
+# 10. Remote-control mesh + mic-serve + sandbox IPC mapped
 
 > **Correction (2026-10-19, reinforcement):** BOQ is **19** methods, not 18 — `ForwardStreamProxyCommand`
 > proven via `(*UnimplementedApiServiceServer).ForwardStreamProxyCommand` @39064156,
@@ -14,13 +14,13 @@
 
 Three remote/local-audio/sandbox surfaces, all loopback or socket based (CONFIRMED, strings tier):
 
-**BOQ ApiService — remote-control signaling plane.** `devtools_jetski_boq_api_proto.ApiService`, 19 real methods: `ConnectInstance`, `ConnectInstanceV2`, `DeleteInstance`, `EvictInstance`, `ForwardProxyCommand`, `ForwardStreamProxyCommand`, `InitiateMeshSession`, `ListAuthorizedDevices`, `ListInstances`, `NotifyUser`, `PollSignalingMessages`, `ProxyCommand`, `RecordClientEvent`, `RecordTrajectoryAnalytics`, `RegisterWebPush`, `RevokeAuthorizedDevice`, `SendSignalingMessage`, `StreamProxyCommand`, `UpdateInstance`. Mesh flow: `InitiateMeshSession` → `PollSignalingMessages` / `SendSignalingMessage` → `ProxyCommand` / `StreamProxyCommand` (the v2/streaming variants imply streaming RPCs, consistent with a remote-terminal mesh). **The proxy URL is NOT in the binary** — it comes from the Mendel feature flag `remote-control-proxy-server-url` (log line `[RemoteControl] Staying disconnected: remote-control-proxy-server-url Mendel flag not available.`). Daemon installs as systemd unit `agy-remote-control.service` (@91369332 / 0x5722fd8; launchd/schtasks on other OSes); `--session` = login-scoped instead of boot. CLI: `agy remote-control start [--name] [--session]` | `status` | `stop`. Local daemon state readable via LS `GetRemoteControlInfo`. INFERENCE: the remote drive-a-CLI transport; not directly callable without the server URL.
+**BOQ ApiService: remote-control signaling plane.** `devtools_jetski_boq_api_proto.ApiService`, 19 real methods: `ConnectInstance`, `ConnectInstanceV2`, `DeleteInstance`, `EvictInstance`, `ForwardProxyCommand`, `ForwardStreamProxyCommand`, `InitiateMeshSession`, `ListAuthorizedDevices`, `ListInstances`, `NotifyUser`, `PollSignalingMessages`, `ProxyCommand`, `RecordClientEvent`, `RecordTrajectoryAnalytics`, `RegisterWebPush`, `RevokeAuthorizedDevice`, `SendSignalingMessage`, `StreamProxyCommand`, `UpdateInstance`. Mesh flow: `InitiateMeshSession` → `PollSignalingMessages` / `SendSignalingMessage` → `ProxyCommand` / `StreamProxyCommand` (the v2/streaming variants imply streaming RPCs, consistent with a remote-terminal mesh). **The proxy URL is NOT in the binary**: it comes from the Mendel feature flag `remote-control-proxy-server-url` (log line `[RemoteControl] Staying disconnected: remote-control-proxy-server-url Mendel flag not available.`). Daemon installs as systemd unit `agy-remote-control.service` (@91369332 / 0x5722fd8; launchd/schtasks on other OSes); `--session` = login-scoped instead of boot. CLI: `agy remote-control start [--name] [--session]` | `status` | `stop`. Local daemon state readable via LS `GetRemoteControlInfo`. INFERENCE: the remote drive-a-CLI transport; not directly callable without the server URL.
 
-**mic-serve — microphone loopback server.** `agy mic-serve [--addr]` forwards this machine's mic to a CLI on another host (over SSH port-forward, per changelog @98754675). Go package `google3/third_party/jetski/cli/audio/micserve` (`Serve`, `serveConn`). No HTTP routes in strings — raw loopback TCP audio. `127.0.0.1:4713` literal VERIFIED @90525006 — but its status as the `--addr` *default* (vs an example) is UNVERIFIED at strings tier. `ANTIGRAVITY_MIC` env var exists (single occurrence; semantics unknown).
+**mic-serve: microphone loopback server.** `agy mic-serve [--addr]` forwards this machine's mic to a CLI on another host (over SSH port-forward, per changelog @98754675). Go package `google3/third_party/jetski/cli/audio/micserve` (`Serve`, `serveConn`). No HTTP routes in strings: raw loopback TCP audio. `127.0.0.1:4713` literal VERIFIED @90525006, but its status as the `--addr` *default* (vs an example) is UNVERIFIED at strings tier. `ANTIGRAVITY_MIC` env var exists (single occurrence; semantics unknown).
 
-**jetski_connectd.sock — sandbox exec IPC.** Unix socket `/run/user/<uid>/jetski_connectd.sock` (format string `/run/user/%d/jetski_connectd.sock` @91662994; literal @91663047); plumbed into sidecar/sandbox exec config (`exebox.Config`). INFERENCE: sandbox exec control socket; protocol verbs unenumerated (out of strings tier). Daemon not present on this box.
+**jetski_connectd.sock: sandbox exec IPC.** Unix socket `/run/user/<uid>/jetski_connectd.sock` (format string `/run/user/%d/jetski_connectd.sock` @91662994; literal @91663047); plumbed into sidecar/sandbox exec config (`exebox.Config`). INFERENCE: sandbox exec control socket; protocol verbs unenumerated (out of strings tier). Daemon not present on this box.
 
-**MCP child processes:** `agy mcp add|remove|list|enable|disable` (subcommands verified live: `agy mcp --help` → exit 0). Servers spawn as child processes over stdio; OAuth tokens in `mcp_oauth_tokens.json`. No listener of its own — the sanctioned extension path.
+**MCP child processes:** `agy mcp add|remove|list|enable|disable` (subcommands verified live: `agy mcp --help` → exit 0). Servers spawn as child processes over stdio; OAuth tokens in `mcp_oauth_tokens.json`. No listener of its own: the sanctioned extension path.
 
 Target pinned: `agy` v1.3.1, sha256 `085f43e0d0628a8a8dabe1e547067818fa2c0adc86cfac98a3c4492918f455ef`.
 
@@ -34,14 +34,14 @@ Lane A1 (control planes). BOQ method list via deconcat heuristics in `pocs/a1_en
 
 ## 3. WHAT IT UNLOCKS
 
-Beyond the local control plane there is a remote one: the CLI can install a background daemon and join a server-run mesh session, letting a remote machine send commands and stream a terminal through it — the actual server address is pushed by Google's feature-flag system, not stored in the program. Separately, a tiny command can turn your microphone into a network stream another machine can listen to, and a sandbox socket gives local tools an execution backdoor into agent sandboxes. None of these were running on this machine, but the wiring is all in the binary.
+Beyond the local control plane there is a remote one: the CLI can install a background daemon and join a server-run mesh session, letting a remote machine send commands and stream a terminal through it; the actual server address is pushed by Google's feature-flag system, not stored in the program. Separately, a tiny command can turn your microphone into a network stream another machine can listen to, and a sandbox socket gives local tools an execution backdoor into agent sandboxes. None of these were running on this machine, but the wiring is all in the binary.
 
 ---
 
 ## 4. HOW A DEVELOPER BUILDS ON IT
 
-- **Remote-control daemon:** `agy remote-control start --name <n> [--session]` installs `agy-remote-control.service` (systemd) / launchd plist / schtasks; `status`/`stop` manage it. Server URL is Mendel-driven (`remote-control-proxy-server-url`) — fetch via LS `GetMendelFlags` when running; do not hardcode.
+- **Remote-control daemon:** `agy remote-control start --name <n> [--session]` installs `agy-remote-control.service` (systemd) / launchd plist / schtasks; `status`/`stop` manage it. Server URL is Mendel-driven (`remote-control-proxy-server-url`): fetch via LS `GetMendelFlags` when running; do not hardcode.
 - **Mesh protocol shape:** `InitiateMeshSession` → poll/send signaling messages → `ProxyCommand`/`StreamProxyCommand`. Daemon state: LS `GetRemoteControlInfo`.
 - **mic-serve:** `agy mic-serve --addr 127.0.0.1:4713` (default); consumer connects over an SSH port-forward. Audio is raw TCP, no HTTP.
-- **Sandbox IPC:** `/run/user/<uid>/jetski_connectd.sock` — verbs unenumerated; probing requires a running connectd with a live socket.
+- **Sandbox IPC:** `/run/user/<uid>/jetski_connectd.sock`: verbs unenumerated; probing requires a running connectd with a live socket.
 - **MCP extension path:** `agy mcp add` for stdio servers; `mcp_config.json` `{command, args?, env?}`; OAuth completions via LS `CompleteMcpOAuth`.

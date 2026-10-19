@@ -1,4 +1,4 @@
-# 07 — Full hook contract extracted (6 events, protojson stdin/stdout)
+# 07. Full hook contract extracted (6 events, protojson stdin/stdout)
 
 > **Correction (2026-10-19, reinforcement):** downgraded from "7 events" to **6** — four independent
 > hunts found no 7th event; the "7" had no provenance in the lane artifacts. The 6 named events are
@@ -10,7 +10,7 @@
 
 ## 1. WHAT WAS FOUND
 
-The complete lifecycle-hooks contract was carved from the binary's embedded `docs/hooks.md` (offset 95255018 → 95268147, 13,129 bytes — the largest embedded customization doc) and is **byte-identical** to the on-disk copy. Summary (CONFIRMED):
+The complete lifecycle-hooks contract was carved from the binary's embedded `docs/hooks.md` (offset 95255018 → 95268147, 13,129 bytes: the largest embedded customization doc) and is **byte-identical** to the on-disk copy. Summary (CONFIRMED):
 
 - **File:** single `hooks.json` in the customization root (e.g. `.agents/hooks.json`). Top-level keys = hook **names** → event config. Working dir for commands = the directory containing `hooks.json`. Commands run via `sh -c` (Unix) / `cmd /c` (Windows); `~` expanded. Only `type: "command"` supported; hooks run **synchronously and block the agent loop**.
 - **Per named hook:** `enabled` (bool, default true) + event arrays.
@@ -20,9 +20,9 @@ The complete lifecycle-hooks contract was carved from the binary's embedded `doc
 
 | Event | Stdout result |
 |---|---|
-| `PreToolUse` | `{decision: "allow"\|"deny"\|"ask"\|"force_ask", reason?, permissionOverrides?, overwrite?}` — `overwrite` = shallow top-level merge into the tool call's args; the agent is told which keys changed |
+| `PreToolUse` | `{decision: "allow"\|"deny"\|"ask"\|"force_ask", reason?, permissionOverrides?, overwrite?}`: `overwrite` = shallow top-level merge into the tool call's args; the agent is told which keys changed |
 | `PostToolUse` | `{}` (input adds `toolCall{name,args}`, `stepIdx`, `error?`) |
-| `SessionStart` / `PreInvocation` | `{injectSteps?}` — inject `systemMessage` (persists), `userMessage`, or `ephemeralMessage` (dropped after current turn) |
+| `SessionStart` / `PreInvocation` | `{injectSteps?}`: inject `systemMessage` (persists), `userMessage`, or `ephemeralMessage` (dropped after current turn) |
 | `PostInvocation` | `{injectSteps?, terminationBehavior?}` where terminationBehavior ∈ `"force_continue"` \| `"terminate"` \| `""` |
 | `Stop` | `{decision: "continue"\|…, reason?}`; input has `terminationReason` ∈ `NO_TOOL_CALL`, `MAX_INVOCATIONS`, `MAX_FORCED_INVOCATIONS`, `MAX_TOKEN_BUDGET_EXCEEDED`, `ERROR`, `USER_CANCELED`, `TERMINAL_STEP_TYPE`, `TERMINAL_CUSTOM_HOOK`, `INJECTED_RESPONSE` |
 
@@ -42,7 +42,7 @@ Lane A2 (config schema), strings tier. The hook doc was one of 12 embedded custo
 
 ## 3. WHAT IT UNLOCKS
 
-The agent has tripwires you can install: small scripts that fire before a tool runs, after it finishes, when a session starts, or when the agent is about to stop. Before a tool runs, your script can allow it, deny it, ask the user, or even rewrite the tool's arguments — and the agent is told what you changed. When it stops, your script learns why (out of steps? budget hit? user canceled?) and can keep it going. That is a control panel over the agent's entire lifecycle, in JSON over stdin/stdout.
+The agent has tripwires you can install: small scripts that fire before a tool runs, after it finishes, when a session starts, or when the agent is about to stop. Before a tool runs, your script can allow it, deny it, ask the user, or even rewrite the tool's arguments, and the agent is told what you changed. When it stops, your script learns why (out of steps? budget hit? user canceled?) and can keep it going. That is a control panel over the agent's entire lifecycle, in JSON over stdin/stdout.
 
 ---
 
@@ -69,5 +69,5 @@ The agent has tripwires you can install: small scripts that fire before a tool r
 
 - Hook scripts read context JSON on **stdin**, write result JSON on **stdout**. All keys camelCase.
 - `PreToolUse` returning `{"decision":"deny","reason":"..."}` blocks the tool; `overwrite` rewrites args with a shallow merge (nested objects replaced wholesale).
-- `Stop` can return `{"decision":"continue"}` to resume the loop — mind `MAX_FORCED_INVOCATIONS` / `MAX_TOKEN_BUDGET_EXCEEDED` guards.
+- `Stop` can return `{"decision":"continue"}` to resume the loop: mind `MAX_FORCED_INVOCATIONS` / `MAX_TOKEN_BUDGET_EXCEEDED` guards.
 - Notes: working dir = the hooks.json directory; sync execution blocks the agent loop (keep handlers fast). Whether hooks fire identically for `agy -p` headless runs is unverified. Plugin-bundled hooks must sit at the plugin root (`hooks/hooks.json` is not discovered).

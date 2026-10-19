@@ -1,4 +1,4 @@
-# Finding 11 — The autonomy roadmap is a config surface: six experimental structs, fully field-recovered
+# 11. The autonomy roadmap is a config surface: six experimental structs, fully field-recovered
 
 **Version pin:** codex CLI **0.155.1**, 269,273,536 bytes, sha256 `0753dfe1…b761`.
 All offsets are file offsets in that image. `&[&str]` FIELDS arrays are base-0
@@ -10,7 +10,7 @@ array resolves to `[a-z0-9_]` ASCII).
 The structs that were previously "existence confirmed, fields unrecovered"
 (Guardian, token budgets, multi-agent v2, code mode, network proxy, rollout
 budgets) are now fully field-recovered. Each config key below is a real,
-config-file-writable field with real validation strings in the binary — this is
+config-file-writable field with real validation strings in the binary: this is
 the config surface for the shipped experimental systems (guardian classifier,
 token budgeting/compaction, multi-agent, code mode, network proxy, rollout
 budgets) plus 7 bonus structs recovered from the same array.
@@ -20,7 +20,7 @@ concatenates the roadmap structs' field lists in declaration order. Segmentation
 is locked by each struct's `struct <Name> with <N> elements` marker and
 cross-checked against per-field `features.<section>.<field>` validation strings.
 
-### GuardianV2ConfigToml — 14/14
+### GuardianV2ConfigToml (14/14)
 `struct GuardianV2ConfigToml with 14 elements` @218812826 (8 occurrences).
 108-array indices 11–24:
 
@@ -42,7 +42,7 @@ minus `review_threshold` and `reasoning_effort`. The 14-field list is current
 binary (INFERENCE on age, CONFIRMED on bytes). Prior docs that said
 "GuardianV2 fields unrecovered" are superseded by this finding.
 
-### TokenBudgetConfigToml — 7/7
+### TokenBudgetConfigToml (7/7)
 `struct TokenBudgetConfigToml with 7 elements` @218813084 (7 occurrences).
 108-array indices 26–32:
 
@@ -58,7 +58,7 @@ Cross-refs (all literal in binary):
 `features.token_budget.reminder_message_template` ("must not exceed"),
 `token_budget.use_history_notes_extension` (feature key list).
 
-### MultiAgentV2ConfigToml — 16/16
+### MultiAgentV2ConfigToml (16/16)
 `struct MultiAgentV2ConfigToml with 16 elements` @218813281 (7 occurrences).
 108-array indices 35–50:
 
@@ -73,7 +73,7 @@ expose_spawn_agent_model_overrides, wait_agent_enabled, non_code_mode_only
 
 Cross-ref: `features.multi_agent_v2.tool_namespace` (literal).
 
-### CodeModeConfigToml — 4/4
+### CodeModeConfigToml (4/4)
 `struct CodeModeConfigToml with 4 elements` @218810210 (7 occurrences).
 108-array indices 4–7:
 
@@ -82,7 +82,7 @@ enabled, default_exec_yield_time_ms, excluded_tool_namespaces,
 direct_only_tool_namespaces
 ```
 
-### NetworkProxyConfigToml — 14/14
+### NetworkProxyConfigToml (14/14)
 `struct NetworkProxyConfigToml with 14 elements` @218813327 (7 occurrences).
 108-array indices 51–64:
 
@@ -97,7 +97,7 @@ Cross-refs: `network-proxy/src/socks5.rs`, `CODEX_NETWORK_PROXY_ACTIVE`,
 `credential brokerage could not creat[e]`. `mode` (index 59) is the least
 cross-referenced field.
 
-### RolloutBudgetConfigToml — 5/5
+### RolloutBudgetConfigToml (5/5)
 `struct RolloutBudgetConfigToml with 5 elements` @218813395 (7 occurrences).
 108-array indices 67–71:
 
@@ -116,7 +116,7 @@ positive`.
 - **ContextManagementConfigToml** (N=1): `experimental_mode` (index 75).
 - **CurrentTimeReminderConfigToml** (N=5): `enabled, reminder_interval_seconds, clock_source, delivery_mode, sleep_tool` (indices 76–80).
 - **GuardianV2TranscriptConfigToml** (N=7): `sources, include_images, max_message_entry_tokens, max_tool_entry_tokens, max_message_transcript_tokens, max_tool_transcript_tokens, max_recent_non_user_entries` (indices 81–87).
-- **GuardianV2ReviewScopeConfigToml** (N=2): `computer_use_only, sandboxed_exec_commands` (indices 90–91) — also confirmed as a standalone 2-entry pointer array @265778016 (the only individual struct array that survived dead-code elimination).
+- **GuardianV2ReviewScopeConfigToml** (N=2): `computer_use_only, sandboxed_exec_commands` (indices 90–91); also confirmed as a standalone 2-entry pointer array @265778016 (the only individual struct array that survived dead-code elimination).
 - **ModelTokenBudgetConfig** (N=7): `enabled, use_history_notes_extension, reminder_threshold_tokens, reminder_message_template, auto_compact_fallback_prompt, auto_compact_fallback_buffer_tokens` (6 of 7 recovered; 7th UNRECOVERED, HYPOTHESIS: `guidance_message`).
 
 **Unresolved in the 108-array (HYPOTHESIS: enum variants, not assigned):**
@@ -134,12 +134,12 @@ always, never, disabled, cached, indexed, live, none, custom`).
   0.149.0 schema emission (95/10/75/1). Fresh 0.155.1 schema emission is
   **102/10/82/1**. All counts above are 0.155.1.
 
-## 2. HOW IT WAS FOUND (exact tool, command, offset — reproducible)
+## 2. HOW IT WAS FOUND
 
 Method: read-only. Rust `&str` literals are packed with **no NUL separators**
 (verified with `od -c`: names are back-to-back), so the packed name-runs used by
 earlier passes cannot be split. The new technique: locate the `&[&str]` FIELDS
-pointer arrays — 16-byte `(u64 ptr, u64 len)` entries — and walk them, validating
+pointer arrays, 16-byte `(u64 ptr, u64 len)` entries, and walk them, validating
 each entry resolves to `[a-z0-9_]` ASCII.
 
 Reproduction (independent walk, byte-identical results to the original pass):
@@ -197,21 +197,21 @@ Segmentation locked by marker occurrences, spot-verified on this pass:
 `struct NetworkProxyConfigToml with 14 elements` first @218813327 (7 occ);
 `struct RolloutBudgetConfigToml with 5 elements` first @218813395 (7 occ).
 
-## 3. WHAT IT UNLOCKS (plain language, no jargon)
+## 3. WHAT IT UNLOCKS
 
 Codex's unreleased features are not hidden behind special flags or secret
-commands — they are settings files anyone can read and write. Every name in
+commands: they are settings files anyone can read and write. Every name in
 these lists is a knob you can turn in `config.toml`. Want to know how OpenAI
 plans to cap tokens per rollout? It's right here: `limit_tokens`,
 `reminder_at_remaining_tokens`, `sampling_token_weight`, `prefill_token_weight`.
 Curious what the "guardian" safety checker will score on you?
 `classifier_instructions`, `review_threshold`, `max_action_tokens`,
-`persist_scores` — its whole dashboard is laid out in plain text. This finding
+`persist_scores`: its whole dashboard is laid out in plain text. This finding
 turns a pile of mystery "experimental feature" rumors into an actual settings
 manual: each knob's name tells you what it controls, and each knob's presence
 in the binary tells you the feature is already built and waiting for a switch.
 
-## 4. HOW A DEVELOPER BUILDS ON IT (concrete, cut-and-dry)
+## 4. HOW A DEVELOPER BUILDS ON IT
 
 1. Write `config.toml` entries under `[features.guardian]` /
    `[features.token_budget]` / `[features.multi_agent_v2]` /
@@ -224,7 +224,7 @@ in the binary tells you the feature is already built and waiting for a switch.
    client-side before Codex rejects the config at load.
 3. Watch the 0.149.0-era 12-field Guardian packing vs the current 14-field one:
    any code that parsed the 12-field layout must accept `review_threshold` and
-   `reasoning_effort` as new optional keys — schema migration for free.
+   `reasoning_effort` as new optional keys: schema migration for free.
 4. Use the unresolved tail (indices 92–107) as the fuzzing target for the next
    pass: they decode as valid identifiers and sit adjacent to confirmed enum
    variants (`tool_calls|tool_outputs|reasoning`), so walk each struct's

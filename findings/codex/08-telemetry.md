@@ -1,18 +1,18 @@
-# Finding 08 — Telemetry is two pipelines, not one
+# 08. Telemetry is two pipelines, not one
 
 **Version pin:** all string evidence from the **0.155.1** bun binary (`otel/src/provider.rs`
 etc.), cross-checked against official docs (`https://developers.openai.com/codex/config-advanced/`,
-fetched 2026-10-18; docs may describe a newer build than the binary — binary-string
+fetched 2026-10-18; docs may describe a newer build than the binary: binary-string
 corroboration noted per claim). `codex --help` / `codex exec --help` grep re-verified live
 on **0.149.0** (zero matches for `analytic|otel|metric|telemetry`). Exact OTel batch/export
 numerics are UNKNOWN; `service.name` value unrecovered.
 
 ## 1. WHAT WAS FOUND
 
-**Pipeline 1 — Analytics: ON by default.** Sends anonymous usage/health metrics to OpenAI.
+**Pipeline 1 (Analytics): ON by default.** Sends anonymous usage/health metrics to OpenAI.
 Byte-exact literal in `otel/src/provider.rs` rodata: `"https://ab.chatgpt.com/otlp/v1/metrics"`.
-It is the only fully-qualified OTLP URL in the binary (no `/v1/traces` or `/v1/logs` variant
-— searched, zero hits). Pipeline attribution (analytics metrics leg) is high-confidence
+It is the only fully-qualified OTLP URL in the binary (no `/v1/traces` or `/v1/logs` variant:
+searched, zero hits). Pipeline attribution (analytics metrics leg) is high-confidence
 INFERENCE from placement + docs ("This also disables custom OTLP metrics exporters in Codex
 CLI" under `[analytics] enabled = false`); the literal itself is CONFIRMED.
 - Per-turn payload includes `codex.turn.cost_microusd` and `codex.turn.token_usage`.
@@ -25,30 +25,30 @@ CLI" under `[analytics] enabled = false`); the literal itself is CONFIRMED.
   `codex.sqlite.init.count`, `codex.sqlite.init.duration_ms`.
 - Default metric tags (docs + binary): `auth_mode`, `originator`, `session_source`, `model`, `app.version`; `originator` values `cli`, `vscode`, `vscode-insiders`, `cursor`.
 - **Kill switch:** `[analytics] enabled = false` in config.toml (single-field
-  `AnalyticsConfigToml`; help text quotes the exact TOML block). No CLI flag exists —
+  `AnalyticsConfigToml`; help text quotes the exact TOML block). No CLI flag exists:
   `codex --help` and `codex exec --help` contain zero matches for telemetry terms (verified
   0.149.0). Also settable via `-c analytics.enabled=false`.
 
-**Pipeline 2 — OTel: OFF by default, opt-in.** `[otel]` config with `environment`
-(defaults `"dev"`), `log_user_prompt` (default false — prompts redacted unless enabled),
+**Pipeline 2 (OTel): OFF by default, opt-in.** `[otel]` config with `environment`
+(defaults `"dev"`), `log_user_prompt` (default false: prompts redacted unless enabled),
 `exporter` (only two variants: `otlp-http` / `otlp-grpc`; `exporter = "none"` maps to the
 enum being unset), `trace_exporter`, `span_attributes`, TLS sub-config
 (`ca-certificate`, `client-certificate`, `client-private-key`, kebab-case). Linked
 opentelemetry-otlp 0.31.0 honors the standard env overrides (CONFIRMED literals):
 `OTEL_EXPORTER_OTLP_{ENDPOINT,TRACES_ENDPOINT,METRICS_ENDPOINT,LOGS_ENDPOINT,HEADERS,TIMEOUT}`,
 per-signal timeout/headers/compression vars, `OTEL_BSP_*` / `OTEL_BLRP_*` batch vars,
-`OTEL_METRIC_EXPORT_INTERVAL`, `OTEL_TRACES_SAMPLER{,_ARG}`. **No opt-out is needed — it
+`OTEL_METRIC_EXPORT_INTERVAL`, `OTEL_TRACES_SAMPLER{,_ARG}`. **No opt-out is needed: it
 sends nothing unless configured** (`"No OTEL exporter enabled in settings."`). Note:
 `[analytics] enabled = false` additionally disables *custom OTel metrics exporters*; whether
 it also disables OTel *log* export is UNVERIFIED (docs scope it to analytics + metrics).
 
 **Two kill-switch gotchas (CONFIRMED):**
-1. `OTEL_SDK_DISABLED` has **zero hits** in the binary — the env var operators reach for
+1. `OTEL_SDK_DISABLED` has **zero hits** in the binary: the env var operators reach for
    first silently does nothing here (absence-of-string; strong but not absolute proof).
 2. A prior pass's "no opt-out found" was imprecise and is corrected here: OTel needs no
    opt-out (it's opt-in); analytics is the pipeline needing the opt-out.
 
-**Payload shapes (CONFIRMED literals):** structured OTel log events —
+**Payload shapes (CONFIRMED literals):** structured OTel log events:
 `codex.conversation_starts`, `codex.api_request`, `codex.sse_event`, `codex.websocket_request`,
 `codex.user_prompt`, `codex.tool_decision`, `codex.tool_result`, `codex.websocket.event`,
 `codex.process.start`, `codex.app_server.otel_reloaded`; instrumentation scopes
@@ -71,7 +71,7 @@ duplicate-install guard (`state/src/telemetry.rs:41`). There is no `mcp-server`
 subcommand in this build (`mcp` = "Manage external MCP servers").
 
 Also shipped: a Statsig **client key** literal immediately after the metrics URL in rodata
-(`"client-MkRuleRQBd6qakfnDYqJVR9JuXcY57Ljly3vi5JVUIO"` — client keys are public-by-design;
+(`"client-MkRuleRQBd6qakfnDYqJVR9JuXcY57Ljly3vi5JVUIO"`: client keys are public-by-design;
 quoted as evidence only) plus a `"statsig exporter should be resolved"` unreachable-code
 string proving a Statsig-exporter code path exists in the provider.
 
@@ -104,7 +104,7 @@ compliance. For teams, the per-turn `cost_microusd` metric is a ready-made billi
    [analytics]
    enabled = false
    ```
-   or pass `-c analytics.enabled=false`. (Do NOT rely on `OTEL_SDK_DISABLED=true` — it is unreferenced.)
+   or pass `-c analytics.enabled=false`. (Do NOT rely on `OTEL_SDK_DISABLED=true`: it is unreferenced.)
 2. Opt into your own OTel pipeline:
    ```toml
    [otel]
@@ -115,9 +115,9 @@ compliance. For teams, the per-turn `cost_microusd` metric is a ready-made billi
    or `otlp-grpc` with `endpoint = "https://otel.internal:4317"`. Standard
    `OTEL_EXPORTER_OTLP_*` env vars also honored; mTLS via the `ca-certificate` /
    `client-certificate` / `client-private-key` sub-config.
-3. Note the `[analytics] enabled = false` also kills custom OTel *metrics* exporters —
+3. Note the `[analytics] enabled = false` also kills custom OTel *metrics* exporters:
    keep it in mind if you want your own metrics pipeline alongside analytics disabled.
 4. In the app-server, exporters hot-reload on account change (`codex.app_server.otel_reloaded`
-   event) — no restart needed after auth changes.
+   event): no restart needed after auth changes.
 5. Build dashboards off `codex.turn.cost_microusd` and `codex.turn.token_usage` per turn,
    tagged by `model`, `auth_mode`, `originator`.

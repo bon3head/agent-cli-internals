@@ -1,4 +1,4 @@
-# 15 — Gateway full route table (18 paths)
+# 15. Gateway full route table (18 paths)
 
 **Target pinned:** claude CLI 2.1.287 · Bun-compiled ELF 64-bit x86-64, NOT stripped · 244,317,368 bytes ·
 `/home/hatch/.local/share/claude/versions/2.1.287` · carved JS `~/workspace/rea-claude/deep-dive/carved/claude-bundle-full.js`
@@ -14,8 +14,8 @@
 
 ## 1. WHAT WAS FOUND
 
-The gateway (`claude gateway`) is a full HTTP server — `Bun.serve({hostname, port, idleTimeout:0, ...tls})`,
-`maxHeaderSize=262144`, fallthrough `404 "not found"` — with an 18-path route table. The request router
+The gateway (`claude gateway`) is a full HTTP server: `Bun.serve({hostname, port, idleTimeout:0, ...tls})`,
+`maxHeaderSize=262144`, fallthrough `404 "not found"`: with an 18-path route table. The request router
 keys on `Ot = new URL(le.url).pathname` and `le.method`.
 
 | # | Path | Method gate | What it serves |
@@ -38,9 +38,9 @@ keys on `Ot = new URL(le.url).pathname` and `le.method`.
 | 16–18 | `/v1/metrics`, `/v1/logs`, `/v1/traces` | POST | OTLP relay: map `vb={"/v1/metrics":"metrics","/v1/logs":"logs","/v1/traces":"traces"}` → fanout to targets |
 
 Inference-path allowlist (verified literal): `AL=["/v1/messages","/v1/messages/count_tokens"]`,
-`function jh(e){return AL.includes(e)}` — used both for the bearer fast path and the inference dispatch.
+`function jh(e){return AL.includes(e)}`: used both for the bearer fast path and the inference dispatch.
 
-## 2. HOW IT WAS FOUND (exact tool, command, offset — reproducible)
+## 2. HOW IT WAS FOUND
 
 Tool: `python3 re.finditer` windowed context mining on the carved bundle; `grep -aob` for path literals.
 
@@ -64,29 +64,29 @@ Key handler evidence: `/` → `if(Ot==="/"&&le.method==="GET")return u0(...)` @2
 fallthrough 404 @25866636. Path-string presence spot-confirmed by hand: `/v1/metrics` (5 hits),
 `/v1/traces` (4), `/v1/organizations/spend_limits` (1), `/protocol` (12), `/oauth/device_authorization` (6).
 
-## 3. WHAT IT UNLOCKS (plain language, no jargon)
+## 3. WHAT IT UNLOCKS
 
-This is not just an auth helper — it's a private API server that turns your machine into an Anthropic
+This is not just an auth helper: it's a private API server that turns your machine into an Anthropic
 endpoint: a client can discover how to log in (`/.well-known/...`), run a full device-code OAuth flow
 (`POST /oauth/device_authorization`, verify at `/device`, mint session at `/oauth/callback`), fetch your
 organization's managed settings, and then call the model through `/v1/messages` exactly like the public
-Anthropic API — including a token-counting endpoint. Admins get a spend-limits control panel at
+Anthropic API, including a token-counting endpoint. Admins get a spend-limits control panel at
 `/v1/organizations/spend_limits`. And there's a telemetry fan-in: anything can POST OpenTelemetry
 metrics/logs/traces to `/v1/metrics|/logs|/traces` and the gateway relays them onward. If you deploy
 this in a shared environment, every one of these is an exposed surface you must authenticate and audit.
 
-## 4. HOW A DEVELOPER BUILDS ON IT (concrete, cut-and-dry)
+## 4. HOW A DEVELOPER BUILDS ON IT
 
 - Route-gate any custom gateway wrapper against the allowlist: only `/v1/messages` and
   `/v1/messages/count_tokens` are inference paths (`jh()`); everything else is control plane. Block the
   control plane at the reverse proxy if you only want model access.
 - Use `GET /` for version pinning in tooling: it returns VERSION/BUILD_TIME/GIT_SHA of the serving
-  gateway — assert the expected build before routing traffic.
+  gateway: assert the expected build before routing traffic.
 - The OTLP fanout (`/v1/metrics|/logs|/traces`) is a ready-made local collector endpoint; point any
   OTEL-instrumented process at the gateway and it relays upstream. Watch the admin header
   `x-gateway-spend-admin` on `/user/bootstrap` for spend-admin flows.
 - CSRF lesson for your own device flow: `/device` POST gates on `sec-fetch-site`/origin vs the gateway
-  origin — copy that check, plus the per-IP rate limits (`rate_limits.device_authorization`,
+  origin: copy that check, plus the per-IP rate limits (`rate_limits.device_authorization`,
   `rate_limits.device_verify`), into any internal device-verification UI.
 - Do NOT put `/api/claude_code/settings` behind the gateway (it was never a gateway route): remote
   settings are served from `/managed/settings` with session-bearer auth preceding the policy match.

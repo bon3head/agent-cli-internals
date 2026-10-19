@@ -1,4 +1,4 @@
-# Finding 05 — Config: 101 of 101 fields recovered, 10-layer precedence
+# 05. Config: 101 of 101 fields recovered, 10-layer precedence
 
 > **Correction (2026-10-19, reinforcement):** the "97 of 101" figure is withdrawn — the true
 > figure is **101/101**, recovered from the actual serde `FIELDS: &[&str]` statics (101 consecutive
@@ -11,14 +11,14 @@
 
 **Version pin:** field list recovered from the **0.155.1** bun binary (serde `FIELDS`
 literals; config-surface.md §1–2). Trials did not regenerate config strings against
-0.149.0, so per-key availability on 0.149.0 is UNCONFIRMED where it matters — spot-check
+0.149.0, so per-key availability on 0.149.0 is UNCONFIRMED where it matters: spot-check
 before relying on a specific key.
 
 ## 1. WHAT WAS FOUND
 
 - **`struct ConfigToml with 101 elements`; all 101 recovered** in declaration order from the
   serde `FIELDS: &[&str]` statics (101 consecutive `(ptr,len)` pairs @0xfcc98c0, byte-identical
-  duplicate @0xfe370d0) — the correct method; packed-string-run tokenizing was lossy (see
+  duplicate @0xfe370d0): the correct method; packed-string-run tokenizing was lossy (see
   correction note above).
 - **10-layer precedence, lowest → highest:** packagedDefaults → mdm → system →
   enterpriseManaged → legacyManaged → user (`~/.codex/config.toml`, repointable via
@@ -26,7 +26,7 @@ before relying on a specific key.
   overrides. (Sources: `ConfigLayerSource` enum in the 0.149.0 app-server schema + CLI help.)
 - Key recovered fields (0.155.1; defaults UNCONFIRMED for ~90 of 101):
   - `model`, `review_model`, `model_provider`, `model_context_window`
-  - `sandbox`, `approval_policy`, `approvals_reviewer` (`user | auto_review | guardian_subagent` — CONFIRMED schema enum; `guardian_subagent` is the legacy name per the schema description, `auto_review` is current: "a carefully prompted subagent to gather relevant context and apply a risk-based decision framework before approving or denying the request")
+  - `sandbox`, `approval_policy`, `approvals_reviewer` (`user | auto_review | guardian_subagent`: CONFIRMED schema enum; `guardian_subagent` is the legacy name per the schema description, `auto_review` is current: "a carefully prompted subagent to gather relevant context and apply a risk-based decision framework before approving or denying the request")
   - `[model_providers.<name>]`: `base_url`, `env_key`, `wire_api`, `env_http_headers`, `query_params`, retry/timeout knobs, `requires_openai_auth`, `supports_websockets`, `supports_standalone_web_search`, `aws`… (`ModelProviderInfo` 18 elements, 12/18 recovered)
   - `[mcp_servers.*]`: per-server `RawMcpServerConfig` (28 fields; see Finding 09)
   - `[shell_environment_policy]` 7/7: `inherit`, `ignore_default_excludes`, `set`, `include_only`, `filters`, `max_depth`, `experimental_use_profile`
@@ -43,7 +43,7 @@ before relying on a specific key.
 - Roadmap structs exist but fields unrecovered: `TokenBudgetConfigToml`,
   rollout-budget, multi-agent v2, guardian v2, network-proxy config (existence CONFIRMED,
   fields UNKNOWN).
-- Bonus eureka (0.149.0 schema): the app-server schema embeds the typed *resolved* config —
+- Bonus eureka (0.149.0 schema): the app-server schema embeds the typed *resolved* config;
   `ConfigReadResponse.json` carries verbatim enums and defaults (e.g. `WebSearchMode:
   [disabled, cached, indexed, live]`).
 
@@ -63,9 +63,9 @@ trust_level = "trusted"`), and `~/workspace/rea-codex/app-server-schema/v2/Confi
 
 ## 3. WHAT IT UNLOCKS
 
-Codex is not a take-it-or-leave-it binary: nearly every behavior — model, sandbox,
+Codex is not a take-it-or-leave-it binary: nearly every behavior (model, sandbox,
 approval policy, MCP servers, per-project trust, telemetry, shell env inheritance, TUI
-keymaps, custom model providers — is a config knob with a predictable override order.
+keymaps, custom model providers) is a config knob with a predictable override order.
 Enterprise admins get MDM/enterprise layers; developers get `-c` one-shot overrides; the
 app-server can read and hot-write config at runtime. And with `[model_providers.*]` you can
 point the whole agent apparatus at your own inference endpoint.
@@ -73,10 +73,10 @@ point the whole agent apparatus at your own inference endpoint.
 ## 4. HOW A DEVELOPER BUILDS ON IT
 
 1. Read effective config at runtime: `config/read` (optionally `includeLayers: true`,
-   `cwd` to resolve project layers) — the response is the typed resolved config.
+   `cwd` to resolve project layers): the response is the typed resolved config.
 2. Hot-edit without restart: `config/value/write{keyPath, value, mergeStrategy}` or
    `config/batchWrite{edits}` with `reloadUserConfig: true` to hot-reload into loaded
-   threads (note: model/effort/tier/personality defaults are NOT reloaded — documented).
+   threads (note: model/effort/tier/personality defaults are NOT reloaded; documented).
 3. Dotted overrides from the CLI: `-c model="gpt-5.6-terra"`, `-c
    'shell_environment_policy.inherit=all'`; the value is parsed as TOML, falling back to a
    raw string.

@@ -1,4 +1,4 @@
-# 02 — Settings schema fully recovered: 183 typed keys (C1)
+# 02. Settings schema fully recovered: 183 typed keys (C1)
 
 > **Correction (2026-10-19, reinforcement):** the "199 keys" figure is withdrawn. Independent
 > re-carve of `Ia()` yields **183** typed keys; the 199 was 183 (Ia) + 7 managed-restriction-list-only
@@ -18,12 +18,12 @@ usage patterns.
 ## 1. WHAT WAS FOUND
 
 The entire settings schema is built by `function Ia()` at binary offset **199028346** (69 KB),
-returning **183** field definitions — dumped verbatim to `ia-func.txt` / `ia-schema-parsed.txt`
+returning **183** field definitions: dumped verbatim to `ia-func.txt` / `ia-schema-parsed.txt`
 (183 keys, each with zod type + describe). (Prior revisions said 192/199; the reinforcement
 re-carve is byte-exact and the 183 is VERIFIED.) Byte-level anchors:
 
 - The assembled schema is **`u(shape).passthrough()`** (CONFIRMED: from the schema class,
-  `An.whole(){return this.wholeSchema??=u(this.shapeOf(this.keys)).passthrough()}`) —
+  `An.whole(){return this.wholeSchema??=u(this.shapeOf(this.keys)).passthrough()}`):
   **unknown keys are kept, never rejected.** Typos in settings.json silently sit there.
 - Five sources, fixed low→high precedence (CONFIRMED: `Li=["userSettings","projectSettings",
   "localSettings","flagSettings","policySettings"]` @198690770, describe:
@@ -48,7 +48,7 @@ re-carve is byte-exact and the 183 is VERIFIED.) Byte-level anchors:
   failing files ("no error dialog is shown").
 - Project trust gate (CONFIRMED): `~/.claude.json → projects["<encoded-cwd>"].hasTrustDialogAccepted`
   (`le().projects?.[e]?.hasTrustDialogAccepted===!0`).
-- PoC: `pocs/c1-settings-validator.py` enforces the recovered schema — warns (never errors) on
+- PoC: `pocs/c1-settings-validator.py` enforces the recovered schema; warns (never errors) on
   unknown keys, and specifically warns on the `Write(path)` permission gotcha.
 
 ## 2. HOW IT WAS FOUND
@@ -60,7 +60,7 @@ re-carve is byte-exact and the 183 is VERIFIED.) Byte-level anchors:
 - Source-list anchor `Li=[...]` found at 198690770; CLI-name map
   `u={userSettings:"user",projectSettings:"project",localSettings:"local"}` and the toggle set
   `Th=["userSettings","projectSettings","localSettings"]` at 198692371.
-- The `.passthrough()` discovery was made inside the schema class method (`An.whole()`) — this
+- The `.passthrough()` discovery was made inside the schema class method (`An.whole()`): this
   explains the byte-level behavior that unknown keys never error.
 - Trial (2026-10-18): `python3 c1-settings-validator.py clean.json bad.json ~/.claude/settings.json` →
   clean: `0 error(s), 0 warning(s)`; bad: `1 error(s), 2 warning(s)`
@@ -71,23 +71,23 @@ re-carve is byte-exact and the 183 is VERIFIED.) Byte-level anchors:
 ## 3. WHAT IT UNLOCKS
 
 In plain terms: you can now write a Claude Code settings file by hand and have it validated by
-a real schema instead of trial-and-error — and you know exactly which file wins when several
+a real schema instead of trial-and-error, and you know exactly which file wins when several
 say different things, and which knobs are admin-only. The "my settings change did nothing"
 class of bugs (typos kept silently, `--setting-sources` not disabling `--settings`, project
 settings silently ignored in `-p` mode) is now diagnosable offline.
 
 ## 4. HOW A DEVELOPER BUILDS ON IT
 
-- **Validate before deploy:** `python3 pocs/c1-settings-validator.py settings.json` — run it
+- **Validate before deploy:** `python3 pocs/c1-settings-validator.py settings.json`: run it
   against any hand-written settings.json in CI or before shipping machine images; exit 1 means a
   real type error, warnings mean a typo or a gotcha.
-  ([pocs/c1-settings-validator.py](sandbox://workspace/rea-claude/deep-dive/pocs/c1-settings-validator.py))
+  ([pocs/c1-settings-validator.py](../../pocs/claude-code/c1-settings-validator.py))
 - **Precedence rules to hard-code:** merge order user → project → local → `--settings` →
   managed; `--setting-sources` never disables `--settings` or managed policy; `true` in
   `blockReadsOutsideWorkingDirectories` in *any* source wins (OR-semantics).
 - **The 183-key reference:** `ia-schema-parsed.txt` is the complete key list with types +
-  describes — generate IDE autocompletion / docs from it rather than re-extracting.
+  describes: generate IDE autocompletion / docs from it rather than re-extracting.
   ([ia-schema-parsed.txt](sandbox://workspace/rea-claude/deep-dive/ia-schema-parsed.txt))
 - **Managed lockdown recipe:** ship `/etc/claude-code/managed-settings.json` with
   `disableBypassPermissionsMode: "disable"`, `allowManagedPermissionRulesOnly: true`,
-  `allowManagedHooksOnly: true` — fleet admins can lock an entire estate from three lines.
+  `allowManagedHooksOnly: true`: fleet admins can lock an entire estate from three lines.

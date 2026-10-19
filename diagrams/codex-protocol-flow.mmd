@@ -1,5 +1,5 @@
 %% =============================================================
-%% codex-protocol-flow.mmd — app-server driver loop, reverse-RPC
+%% codex-protocol-flow.mmd: app-server driver loop, reverse-RPC
 %% approvals, transports, code-mode-host
 %% Source: ~/workspace/rea-codex/deep-dive/REPORT.md findings 1–4
 %%         (A protocol: 95 c2s / 10 s2c requests / 75 s2c notifs,
@@ -19,7 +19,7 @@ flowchart TD
     STEER --> REPEAT
     REPEAT --> TURN
 
-    subgraph RPC["10 server→client requests — client MUST answer"]
+    subgraph RPC["10 server→client requests: client MUST answer"]
         R1["item/commandExecution/requestApproval<br/>item/fileChange/requestApproval<br/>item/permissions/requestApproval"]
         R2["item/tool/requestUserInput<br/>mcpServer/elicitation/request"]
         R3["item/tool/call<br/>(server delegates dynamic<br/>tool call to client)"]

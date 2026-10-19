@@ -1,9 +1,9 @@
-# 05 — Cloud-session control plane mapped (C2)
+# 05. Cloud-session control plane mapped (C2)
 
 **Target pinned:** claude CLI 2.1.287 · Bun-compiled ELF 64-bit x86-64, NOT stripped · 244,317,368 bytes ·
 `/home/hatch/.local/share/claude/versions/2.1.287`
 **Lane:** C2 (cloud/gateway) · **Trial status:** CONFIRMED live (`pocs/cloud_mapper.py` re-run:
-exit 0, 291 distinct values across 8 tables — exact match of the REPORT claim; `claude --help` shows
+exit 0, 291 distinct values across 8 tables: exact match of the REPORT claim; `claude --help` shows
 `--cloud`/`gateway`/`ultrareview` live)
 **Confidence:** CONFIRMED (byte-level). The `--client-data-url` "exact URL" validation semantics and the
 wake-on-comment server-side mechanism are INFERENCE from adjacent copy; wire protocol details
@@ -15,7 +15,7 @@ wake-on-comment server-side mechanism are INFERENCE from adjacent copy; wire pro
 
 The complete cloud-session lifecycle is embedded in the binary:
 
-- `--cloud [description|session_id|url]` — "Create a cloud session with the given description, or
+- `--cloud [description|session_id|url]`: "Create a cloud session with the given description, or
   attach to an existing one by session ID or claude.ai/code URL" (`claude --help`).
 - Session IDs match `^(?:session|cse)_[A-Za-z0-9_-]+$` (byte-confirmed regex).
 - A per-flag treatment matrix (the `gs` object) governs **every flag** at create/attach:
@@ -52,12 +52,12 @@ The complete cloud-session lifecycle is embedded in the binary:
   `teleportFromSessionsAPI` → `pollRemoteSessionEvents` → `teleportResumeCodeSession`.
 - Wake-on-comment: server-pushed comment events + client-side consent record ("comment-monitoring
   consent record(s) handed to the next wake of this session"). **KILL:** the term
-  "wake-on-comment" is descriptive — no local `wake*comment` identifier exists.
-- `claude ultrareview [options] [target]` — "Run a cloud-hosted multi-agent code review of the
+  "wake-on-comment" is descriptive: no local `wake*comment` identifier exists.
+- `claude ultrareview [options] [target]`: "Run a cloud-hosted multi-agent code review of the
   current branch"; preflight `GET /v1/ultrareview/preflight`, quota `GET /v1/ultraveview/quota`
   (`auth:"teleport-org"`), `--post` posts findings via `/v1/code/github/post-review-comment`.
   **KILLS:** ultrareview uploads a partial clone (byte evidence: the review runs "over the
-  branch diff" — "may include staged and unstaged changes you haven't committed yet, but not
+  branch diff": "may include staged and unstaged changes you haven't committed yet, but not
   untracked files"); ultrareview does credential-file checks (no strings; the cloud session's
   own denial set applies).
 
@@ -66,7 +66,7 @@ The complete cloud-session lifecycle is embedded in the binary:
 - Lane C2: `re.findall(rb'[ -~]{6,}')` on the 244 MB binary → 521,976 runs in 13 s; windowed
   context mining (±350 chars via `re.finditer`) after `grep -o` truncation kept destroying
   minified-JS context (`scratchpad-c2.md`).
-- The `gs` treatment matrix decoded from the object literal — every cloud flag-compatibility
+- The `gs` treatment matrix decoded from the object literal: every cloud flag-compatibility
   row traced to its treatment code (`client`/`create`/`ignore-lost`/`ignore-preference`/
   `ignore-kept`/`moot`/`refuse`).
 - Session-id regex, runner endpoints, teleport pipeline, and denial strings all extracted as
@@ -78,8 +78,8 @@ The complete cloud-session lifecycle is embedded in the binary:
 
 ## 3. WHAT IT UNLOCKS
 
-In plain terms: you can now see the whole cloud session lifecycle — start, attach, migrate,
-and pull back home — as documented, scriptable machinery. You know exactly which of your
+In plain terms: you can now see the whole cloud session lifecycle (start, attach, migrate,
+and pull back home) as documented, scriptable machinery. You know exactly which of your
 local flags survive the trip (model, effort, system prompt) and which are silently dropped
 or hard-refused, which is the difference between a cloud session that behaves like your local
 one and one that mysteriously ignores half your configuration.
@@ -87,20 +87,20 @@ one and one that mysteriously ignores half your configuration.
 ## 4. HOW A DEVELOPER BUILDS ON IT
 
 - **Flag compatibility check before launching:** any automation that spawns
-  `claude --cloud` should filter flags through the treatment matrix — forward `Se` flags
+  `claude --cloud` should filter flags through the treatment matrix: forward `Se` flags
   (model/effort/system-prompt), warn on `ignore/lost` flags (`--add-dir`, `--plugin-dir`,
   `--watch-artifact`), and fail fast on `refuse` flags (`--bare`,
   `--dangerously-skip-permissions`) instead of hitting the hard error.
   ([pocs/cloud-map/cloud-map.md](sandbox://workspace/rea-claude/deep-dive/pocs/cloud-map/cloud-map.md))
 - **Session lifecycle tooling:** `claude --cloud <session_id>` (attach),
   `claude --teleport <session_id>` (pull local with full history), session IDs match
-  `^(?:session|cse)_[A-Za-z0-9_-]+$` — validate IDs client-side before invoking.
+  `^(?:session|cse)_[A-Za-z0-9_-]+$`: validate IDs client-side before invoking.
 - **Self-hosted runner fleet:** the ccpool provisioning flow + runner API
   (`/v1/code/runners/self-hosted/*`, health probe `GET 127.0.0.1:{port}/healthz`) is fully
-  specified — stand up pool environments, monitor them with `self_hosted_runner_read_health`
+  specified: stand up pool environments, monitor them with `self_hosted_runner_read_health`
   / `read_metrics` / `tail_log`.
 - **Attach protocol:** streaming frames (`cloud_session`, `worker_frame`, `workerEpoch`)
-  over `/v1/code/agent-proxy` with local-hook callback registrations (`hook_callback`) —
+  over `/v1/code/agent-proxy` with local-hook callback registrations (`hook_callback`):
   the seam for a custom attach client or session mirroring dashboard.
 - **Code-review automation:** `claude ultrareview <PR#>` runs multi-agent review over the
   branch diff; `--json` + `--no-post` gives findings without touching the PR.

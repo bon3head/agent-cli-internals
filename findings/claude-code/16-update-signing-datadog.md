@@ -1,4 +1,4 @@
-# 16 — Update signing (RSA-4096), Datadog sink, event logging, master kill switch
+# 16. Update signing (RSA-4096), Datadog sink, event logging, master kill switch
 
 **Target pinned:** claude CLI 2.1.287 · Bun-compiled ELF 64-bit x86-64, NOT stripped · 244,317,368 bytes ·
 `/home/hatch/.local/share/claude/versions/2.1.287` · carved JS `~/workspace/rea-claude/deep-dive/carved/claude-bundle-full.js`
@@ -18,7 +18,7 @@ against an embedded public key, and refuses the update on `signature_invalid` / 
 always/true). A 404 on the sidecar is `sidecar_missing` unless the legacy `allow-unsigned-legacy` policy
 applies (then checksum-only with an `update_manifest_signature:unsigned_legacy` warning).
 
-**Release-signing public key (RSA-4096 SPKI), full value extracted** — the compiled trust root for BOTH
+**Release-signing public key (RSA-4096 SPKI), full value extracted**: the compiled trust root for BOTH
 update manifests and the served model catalog (`https://downloads.claude.ai/model-catalog/v1/catalog.json`,
 same key id `claude-code-release-signing-key`; `SHA256(SPKI-DER)` pin `publicKeySha256` checked byte-wise):
 
@@ -36,7 +36,7 @@ MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAp28rSV5I8HmK8CK9GixBUZR/gtJxeOCsRXO4
 `https://browser-intake-us5-datadoghq.com/api/v2/logs` (batch 25, 10s). Init gated by the master kill
 switch; events pass an allowlist + redaction, and require firstParty context.
 
-**1P event logging:** `https://api.anthropic.com/api/event_logging/v2/batch` — 10s interval, 200 events per
+**1P event logging:** `https://api.anthropic.com/api/event_logging/v2/batch`: 10s interval, 200 events per
 export, queue cap 8192, shutdown flush budget 2s, up to 8 retry attempts with backoff (500ms → 30s).
 Server-overridable via the `tengu_1p_event_batch_config` gate. Failed batches persist locally to
 `~/.claude/telemetry` (`1p_failed_events.<sha256-base64url>` filenames).
@@ -46,13 +46,13 @@ Server-overridable via the `tengu_1p_event_batch_config` gate. Failed batches pe
 `CLAUDE_CODE_CUSTOM_OAUTH_URL` set. `K2(){return!Eh()}` gates every 1P emit and the Datadog init; a
 server-side kill runs through `S_t("firstParty")` / the `tengu_frond_boric` config.
 
-**KILLS:** no embedded private keys — every `-----BEGIN PRIVATE KEY` hit is code (WebCrypto pkcs8 error
+**KILLS:** no embedded private keys: every `-----BEGIN PRIVATE KEY` hit is code (WebCrypto pkcs8 error
 string; gateway `oidc.client_assertion.private_key_pem` validation messages for user-supplied config).
-No embedded certificates — all `BEGIN CERTIFICATE` hits are parser regexes or validation strings
+No embedded certificates: all `BEGIN CERTIFICATE` hits are parser regexes or validation strings
 (client-cert loader, node-forge, msal, gateway OIDC, CA-bundle pointer scan, cert-block validator). No
 literal certificate bytes anywhere.
 
-## 2. HOW IT WAS FOUND (exact tool, command, offset — reproducible)
+## 2. HOW IT WAS FOUND
 
 Tool: `grep -aob` + `dd` on the carved bundle; `python3 re` for signature/endpoint anchors; the SPKI
 value re-quoted from `~/workspace/re-suite/findings/claude/release-signing-key-spki-b64.txt`.
@@ -87,23 +87,23 @@ Update/signature machinery per lane doc: `je()` manifest verifier @12401350, `tt
 form @12399915). Offset note: Datadog/token offsets are current-carve; earlier lane drafts cite the same
 artifacts ±~30 B from a superseded carve.
 
-## 3. WHAT IT UNLOCKS (plain language, no jargon)
+## 3. WHAT IT UNLOCKS
 
 Your CLI's update pipeline is locked to one key: the 4096-bit public key above is the only thing the CLI
 trusts to approve new versions. If Anthropic signs a release with the matching private key, your machine
-installs it; anything else gets rejected with a loud error. That means the *supply chain* is strong —
-nobody can slip your CLI a fake update without that private key — but it also means Anthropic alone
+installs it; anything else gets rejected with a loud error. That means the *supply chain* is strong:
+nobody can slip your CLI a fake update without that private key, but it also means Anthropic alone
 decides what your next version is, since only their key counts. Meanwhile, every crash report and
 sampled error event your session generates flows to Anthropic's Datadog, authenticated with a public
-token baked into the binary — the token is meant to be public, but it lets anyone map which Datadog
+token baked into the binary: the token is meant to be public, but it lets anyone map which Datadog
 tenant collects Claude Code's errors. And the master kill switch is real and documented: one environment
 variable (`DISABLE_TELEMETRY`) silences the whole reporting stack.
 
-## 4. HOW A DEVELOPER BUILDS ON IT (concrete, cut-and-dry)
+## 4. HOW A DEVELOPER BUILDS ON IT
 
 - Verify any release independently: download `https://downloads.claude.ai/claude-code-releases/<channel>/<version>/manifest.json`
   + `manifest.json.raw-sig.json`, base64-decode the SPKI above into a PEM, and run the same check the CLI
-  does — RSA-PKCS1-v1_5-SHA512 over `sidecarBytes || manifestBytes`, with the SPKI-SHA256 pin
+  does: RSA-PKCS1-v1_5-SHA512 over `sidecarBytes || manifestBytes`, with the SPKI-SHA256 pin
   `89a24e2e…e9896`. Mismatch means do not install.
 - Pin before trusting: the CLI enforces this on its own path; if you distribute the CLI inside your own
   installer, gate on the same `je()` semantics (sidecar present, `version_mismatch` and `key_mismatch`
@@ -111,6 +111,6 @@ variable (`DISABLE_TELEMETRY`) silences the whole reporting stack.
 - Telemetry lockdown for fleet machines: `DISABLE_TELEMETRY=1` (or `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`)
   kills 1P event logging, exposure logging, and the Datadog sink; OTLP export is opt-in anyway
   (`CLAUDE_CODE_ENABLE_TELEMETRY` + exporter env). Confirm quietness by watching for `~/.claude/telemetry`
-  writes — presence of `1p_failed_events.*` files means exports were attempted and failed.
-- Do not extract and reuse the Datadog `pub…` token for your own log shipping — it is scoped to
+  writes: presence of `1p_failed_events.*` files means exports were attempted and failed.
+- Do not extract and reuse the Datadog `pub…` token for your own log shipping: it is scoped to
   Anthropic's tenant and rate-limited as a client token; treat it as infrastructure telemetry, not a key.

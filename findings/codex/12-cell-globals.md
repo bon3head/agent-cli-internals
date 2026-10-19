@@ -1,4 +1,4 @@
-# Finding 12 — The code-mode sandbox is exactly 14 injected names (and no more)
+# 12. The code-mode sandbox is exactly 14 injected names (and no more)
 
 **Version pin:** host binary `codex-code-mode-host` 0.155.1, 69,423,168 bytes,
 sha256 prefix `210ab8ebaebf4bc1421d9e30339c8583` (ships in the same vendor dir
@@ -17,7 +17,7 @@ console, Atomics, SharedArrayBuffer, WebAssembly, clearTimeout, setTimeout,
 image, audio, generatedImage, store, notify, yield_control, tools, ALL_TOOLS
 ```
 
-Evidence (host binary, file offset 46281610 — re-verified on this pass by
+Evidence (host binary, file offset 46281610: re-verified on this pass by
 dumping the bytes immediately after the `failed to allocate helper name` format
 string): the 14 names sit back-to-back with no separators, in exactly this
 order:
@@ -29,7 +29,7 @@ tools|ALL_TOOLS|failed to allocate tool name...
 ```
 
 (Adjacent: `failed to append ALL_TOOLS metadata`, `failed to set ALL_TOOLS
-description/name` — the host builds an `ALL_TOOLS` metadata object with
+description/name`: the host builds an `ALL_TOOLS` metadata object with
 name/description per subscribed tool.)
 
 Explicitly **absent** (zero whole-token occurrences in the cell-actor string
@@ -42,7 +42,7 @@ module: 0 | exports: 0 | queueMicrotask: 0
 
 `fetch` is not a cell global either: the only `fetch` occurrence in the region
 sits inside an HTTP header-name list (`upgrade-insecure-requests`, `warning`,
-`x-content-type-options` — a reqwest header pool @0x2c1b7be), not a registered
+`x-content-type-options`: a reqwest header pool @0x2c1b7be), not a registered
 helper name.
 
 What the sandbox permits vs forbids:
@@ -61,22 +61,22 @@ What the sandbox permits vs forbids:
 | Forbidden | Evidence |
 |---|---|
 | `fetch` / any network API | no global; cell is deliberately network-blind |
-| `setInterval` | no global — only one-shot timers; no recurring loops |
+| `setInterval` | no global: only one-shot timers; no recurring loops |
 | `process`, `Buffer`, `require`, `module`, `exports` | no Node surface at all |
 | `queueMicrotask` | no global |
-| `import` statements | `Unsupported import in exec: ` @0x2b2d701 — cells compile as classic scripts, not modules |
+| `import` statements | `Unsupported import in exec: ` @0x2b2d701: cells compile as classic scripts, not modules |
 
 Consequence: a cell cannot phone home, cannot spawn recurring work, cannot touch
 Node APIs. It computes, builds content blocks (text/image/audio), persists
 serializable values, pokes the host via `notify`, yields cooperatively, and calls
 only the tools the main process explicitly subscribed. The cell's network
 surface is exactly the tool-invocation delegation channel (`code_mode.runtime.invoke_tool`
-span; invocation IDs must be UUIDs and unique — `code-mode tool invocation ID
+span; invocation IDs must be UUIDs and unique: `code-mode tool invocation ID
 must be a UUID`, `code-mode tool invocation ID was reused`).
 
 HYPOTHESIS (mechanism unconfirmed): the `--jitless` literal sits in the
 cell-actor string pool @0x2c22ad9 between `generatedImage expects an image
-generation result object` and rusty_v8 runtime-init strings — V8 likely runs
+generation result object` and rusty_v8 runtime-init strings: V8 likely runs
 jitless, but no call-site (`set_flags_from_string`) was recovered, so this is
 placement evidence only. UNVERIFIED.
 
@@ -84,7 +84,7 @@ placement evidence only. UNVERIFIED.
 This finding replaces that with the enumerated 14-name set + negatives, both
 against 0.155.1 (not the stale 0.149.0 baseline).
 
-## 2. HOW IT WAS FOUND (exact tool, command, offset — reproducible)
+## 2. HOW IT WAS FOUND
 
 Tool: raw byte scan + `strings -n 8`; no disassembly, no network.
 
@@ -118,7 +118,7 @@ the tool-binding spans at `code_mode.runtime.invoke_tool` @0x2c2330a region
 `cell_id, runtime_tool_call_id, tool_name, tool_kind, input` (codex binary
 @0xd24d203).
 
-## 3. WHAT IT UNLOCKS (plain language, no jargon)
+## 3. WHAT IT UNLOCKS
 
 Think of a code-mode cell as a calculator in a glass box. The calculator can do
 math, draw pictures, save notes on an index card, ring a bell to get the host's
@@ -127,23 +127,23 @@ cannot open a web page, cannot set a repeating alarm, cannot run forever, and
 cannot load outside code. That is the entire security story in one sentence:
 the sandbox's power is precisely 14 words long, and everything else is locked
 out. Knowing the exact list means you know exactly what agent code can and
-cannot reach — no guessing whether `fetch` is hiding somewhere (it isn't).
+cannot reach: no guessing whether `fetch` is hiding somewhere (it isn't).
 
-## 4. HOW A DEVELOPER BUILDS ON IT (concrete, cut-and-dry)
+## 4. HOW A DEVELOPER BUILDS ON IT
 
 1. Writing cell code? Target only these 14 names + Promise/Math/JSON + the
    subscribed tool functions. Anything else (`setInterval`, `fetch`,
-   `process`, `Buffer`, `import`, `queueMicrotask`) fails — don't rely on it.
-2. Need recurring work in a cell? You can't — use `setTimeout` chains or
+   `process`, `Buffer`, `import`, `queueMicrotask`) fails: don't rely on it.
+2. Need recurring work in a cell? You can't: use `setTimeout` chains or
    `yield_control` loops instead; `setTimeout expects a function callback` and
    `clearTimeout expects a numeric timeout id` are the only timer APIs.
 3. Persisting state between cells: `store` accepts only plain serializable
-   objects — no class instances, no functions, no circular refs
+   objects: no class instances, no functions, no circular refs
    (`Unable to store {key}. Only plain serializable objects can be stored.`).
 4. Tool invocation from a cell: call the injected per-tool function; each call
    carries a UUID invocation ID, and IDs must be unique (`code-mode tool
    invocation ID was reused` → error). Generate v4 UUIDs client-side.
 5. Content returns: build them with `image({image_url, detail?})`,
    `audio({audio_url})`, `generatedImage({output_hint})`; results fed back into
-   JS accept only MCP blocks — binary data must be a `data: ;base64,` data URI
+   JS accept only MCP blocks: binary data must be a `data: ;base64,` data URI
    (`Pass a base64 data URI instead`).

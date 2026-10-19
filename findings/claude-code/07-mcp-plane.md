@@ -1,4 +1,4 @@
-# 07 — MCP: CLI serves itself; first-party endpoints expanded (C3)
+# 07. MCP: CLI serves itself; first-party endpoints expanded (C3)
 
 **Target pinned:** claude CLI 2.1.287 · Bun-compiled ELF 64-bit x86-64, NOT stripped · 244,317,368 bytes ·
 `/home/hatch/.local/share/claude/versions/2.1.287`
@@ -8,7 +8,7 @@
 `pocs/verify_poc.py` → `PASS: all 35 ground-truth items present; kills hold`;
 byte anchor @224435288 re-read live → byte-exact;
 **PARTIAL:** `claude mcp list` ran with `timeout 20` → printed only `Checking MCP server
-health…`, killed at exit 124 — it performs live health checks; do not run in automation
+health…`, killed at exit 124: it performs live health checks; do not run in automation
 without a timeout wrapper)
 **Confidence:** CONFIRMED (byte-level). slack.mcp.claude.com's auth path and
 mcp-proxy.anthropic.com's exact role are INFERENCE.
@@ -17,7 +17,7 @@ mcp-proxy.anthropic.com's exact role are INFERENCE.
 
 ## 1. WHAT WAS FOUND
 
-- **`claude mcp serve` starts the Claude Code MCP server** — the CLI is its own MCP server.
+- **`claude mcp serve` starts the Claude Code MCP server**: the CLI is its own MCP server.
   10 subcommands (`claude mcp --help`, live): `add`/`add-json`/`add-from-claude-desktop`/
   `get`/`list`/`login`/`logout`/`remove`/`reset-project-choices`/`serve`. **No
   `enable`/`disable`** (contrast `plugin`).
@@ -43,7 +43,7 @@ mcp-proxy.anthropic.com's exact role are INFERENCE.
 - **MCP tools are permission-ruleable** (CONFIRMED). Tool naming: `mcp__${server}__${tool}`
   where server normalization is `e.replace(/[^a-zA-Z0-9_-]/g,"_")`; plugin-bundled:
   `mcp__plugin_<plugin>_<server>__<tool>`. Rule syntax (byte-exact quote): "An allow pattern
-  must name the scope it widens — globs are permitted only in the tool position after a
+  must name the scope it widens: globs are permitted only in the tool position after a
   literal mcp__<server>__ prefix. Deny and ask rules accept wildcards anywhere."
 - MCP OAuth: Dynamic Client Registration, OAuth callback listener with state validation
   (`"Invalid state parameter"`), issuer-stamped persisted creds (SEP-2352),
@@ -71,18 +71,18 @@ mcp-proxy.anthropic.com's exact role are INFERENCE.
 
 ## 3. WHAT IT UNLOCKS
 
-In plain terms: the MCP plane is fully scriptable — you can manage servers from the command
+In plain terms: the MCP plane is fully scriptable; you can manage servers from the command
 line, point the CLI at your own endpoints, and (biggest deal) the CLI itself can *be* an MCP
 server for other agents and tools to call. It is the cleanest integration seam found in the
 binary.
 
 ## 4. HOW A DEVELOPER BUILDS ON IT
 
-- **CLI-as-MCP-server:** `claude mcp serve` — embed Claude Code as a tool source inside
+- **CLI-as-MCP-server:** `claude mcp serve`: embed Claude Code as a tool source inside
   other agents, editors, or pipelines via the standard MCP transports (stdio/SSE/HTTP/
-  WebSocket). The exposed toolset was not enumerated (LIMITATION) — enumerate against
+  WebSocket). The exposed toolset was not enumerated (LIMITATION): enumerate against
   `serve` in a follow-up before building on specific tools.
-- **Endpoint inventory:** `pocs/mcp-plane-inventory.json` + `.md` — the complete first-party
+- **Endpoint inventory:** `pocs/mcp-plane-inventory.json` + `.md`: the complete first-party
   (blocked OAuth hosts, proxy, slack) and third-party (asana, figma, linear, sentry, box)
   endpoint list, regenerated from any build.
   ([mcp-plane-inventory.md](sandbox://workspace/rea-claude/deep-dive/pocs/mcp-plane-inventory.md))
@@ -90,7 +90,7 @@ binary.
   (`mcp__github__*`); deny/ask accept wildcards anywhere (`mcp__*`);
   `--allowedTools "mcp__github_inline_comment__create_inline_comment"` works verbatim.
   Enterprise layer: `allowedMcpServers` / `deniedMcpServers` (deny wins) / `allowManagedMcpServersOnly`.
-- **Operational warnings:** `claude mcp list` performs live health checks — wrap in
+- **Operational warnings:** `claude mcp list` performs live health checks: wrap in
   `timeout` and never run in automation loops (trial: killed at 20 s, exit 124).
   `claude mcp login <name>` supports `--no-browser` for headless OAuth; `add` supports
   `-e KEY=val`, `-H "K: V"`, `--scope local|user|project`, and `${ENV_VAR}` expansion in

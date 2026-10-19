@@ -1,4 +1,4 @@
-# 08 — Plugin plane: marketplace = GCS + git, sha256-pinned trust (C3)
+# 08. Plugin plane: marketplace = GCS + git, sha256-pinned trust (C3)
 
 **Target pinned:** claude CLI 2.1.287 · Bun-compiled ELF 64-bit x86-64, NOT stripped · 244,317,368 bytes ·
 `/home/hatch/.local/share/claude/versions/2.1.287`
@@ -6,7 +6,7 @@
 `plugin|plugins  Manage Claude Code plugins`; `pocs/verify_poc.py` → `PASS: all 35 ground-truth
 items present; kills hold`)
 **Confidence:** CONFIRMED (byte-level). Full plugin.json JSON schema (required vs optional fields)
-unrecovered — only the `manifest.<field>` reference set. Plugin distribution is described as INFERENCE
+unrecovered: only the `manifest.<field>` reference set. Plugin distribution is described as INFERENCE
 ("the distribution vehicle for skills+agents+hooks+MCP servers") from the trust machinery.
 
 ---
@@ -20,7 +20,7 @@ unrecovered — only the `manifest.<field>` reference set. Plugin distribution i
 - Plugin identity: `name@source`. Sources (CONFIRMED): **marketplace** (`plugin@marketplace`),
   **`skills-dir`** (`plugin init` scaffolds `~/.claude/skills/<name>/`, auto-loads as
   `<name>@skills-dir`), **`builtin`** ("this Claude Code bundles a plugin of that name"),
-  **`claudeai`** (synced from claude.ai catalog), **npm** (`<package>@npm` — account-gated:
+  **`claudeai`** (synced from claude.ai catalog), **npm** (`<package>@npm`, account-gated:
   `"Installing plugins straight from an npm registry (`<package>@npm`) is not enabled for this
   account."`).
 - Marketplace protocol (CONFIRMED): add sources by URL, local path, or GitHub repo; marketplace
@@ -50,7 +50,7 @@ unrecovered — only the `manifest.<field>` reference set. Plugin distribution i
 - **`plugin eval`:** `evals/**/case.yaml` (or `prompt.md` + `graders/*.md`); runs on your
   machine **as you**; "sandboxing limits what a malicious plugin can reach but is not a
   guarantee"; `--trust-plugin` for CI; includes a no-plugin baseline arm.
-- Admin control: `strictKnownMarketplaces` / `blockedMarketplaces` under managed settings —
+- Admin control: `strictKnownMarketplaces` / `blockedMarketplaces` under managed settings;
   end-to-end admin gating of plugin sources.
 - **KILLS (0 hits, all case variants):** `recommendedPlugins` does not exist in 2.1.287;
   plugin sharing (`plugin share` / `sharePlugin`) does not exist; `claude mcp
@@ -69,8 +69,8 @@ unrecovered — only the `manifest.<field>` reference set. Plugin distribution i
 
 ## 3. WHAT IT UNLOCKS
 
-In plain terms: plugins are how you package bespoke tooling — a skill, a slash command, a hook
-set, and an MCP server — into one versioned, installable, sha256-pinned bundle. The trust
+In plain terms: plugins are how you package bespoke tooling (a skill, a slash command, a hook
+set, and an MCP server) into one versioned, installable, sha256-pinned bundle. The trust
 model (pins, per-command consent, admin allowlists) means you can ship tooling to a whole team
 or company without handing them a bag of unsigned scripts.
 

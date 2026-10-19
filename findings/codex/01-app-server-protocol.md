@@ -1,4 +1,4 @@
-# Finding 01 — The binary ships its own app-server protocol spec
+# 01. The binary ships its own app-server protocol spec
 
 > **Correction (2026-10-19, reinforcement):** the counts below pin to the STALE 0.149.0 schema
 > capture. Fresh emission from codex 0.155.1 (`codex app-server generate-json-schema --out`,
@@ -25,7 +25,7 @@ interface as typed JSON Schema:
 - `codex app-server generate-json-schema --out <dir>` (and `generate-ts` for TypeScript bindings)
 - Emits **102 client→server requests, 10 server→client requests, 82 server→client
   notifications, 1 client→server notification** on 0.155.1 (95/10/75/1 was the stale 0.149.0
-  capture — see correction note above) — counts script-verified against the schema files, not hand-counted.
+  capture: see correction note above); counts script-verified against the schema files, not hand-counted.
 - The definitions come from compiled-in ts-rs Rust types (`codex-rs/app-server`), i.e. the
   spec is generated from the same structs the server actually parses, so it cannot drift from
   the implementation the way hand-written docs do.
@@ -59,7 +59,7 @@ Key client→server methods (v2, from `~/workspace/rea-codex/app-server-schema/v
 | `initialize` / `initialized` | handshake (`clientInfo`, optional `capabilities`) |
 | `thread/start` | `model?`, `modelProvider?`, `serviceTier?`, `cwd?`, `approvalPolicy?`, `sandbox?`, `config?`, `baseInstructions?`, `personality?` → `ThreadStartResponse{thread, ...}` (thread IDs are UUIDv7) |
 | `turn/start` | `threadId`, `input: UserInput[]` (text/image/audio/skill/mention), `expectedTurnId`-less start → `TurnStartResponse{turn}` |
-| `turn/steer` | `threadId`, `input`, **`expectedTurnId` (required precondition — must match the active turn)** |
+| `turn/steer` | `threadId`, `input`, **`expectedTurnId` (required precondition: must match the active turn)** |
 | `turn/interrupt` | `threadId`, `turnId` → `{}` |
 | `command/exec` (+ `/write`, `/resize`, `/terminate`) | PTY command execution in the server sandbox, client-supplied `processId`, streaming via `command/exec/outputDelta` |
 | `fs/readFile`, `fs/writeFile`, `fs/watch` | host filesystem access; watch events arrive as `fs/changed` |
@@ -68,9 +68,9 @@ Key client→server methods (v2, from `~/workspace/rea-codex/app-server-schema/v
 
 **CONFIRMED vs INFERENCE:** method inventory, parameter shapes, enums, and the v1/v2 bundle
 structure are CONFIRMED (the schema is the binary's own emitted truth). Response-pairing for
-non-key methods (e.g. exact `skills/list` result shape) was not mapped — treat as
-UNVERIFIED. Runtime auth per method is not expressed in schema (UNVERIFIED — see Finding 06).
-Wire framing (NDJSON vs length-prefixed) is not in the schema (UNVERIFIED — see Finding 02).
+non-key methods (e.g. exact `skills/list` result shape) was not mapped: treat as
+UNVERIFIED. Runtime auth per method is not expressed in schema (UNVERIFIED: see Finding 06).
+Wire framing (NDJSON vs length-prefixed) is not in the schema (UNVERIFIED: see Finding 02).
 
 ## 2. HOW IT WAS FOUND
 
@@ -84,17 +84,17 @@ diff -rq /tmp/codex-schema-retrial ~/workspace/rea-codex/app-server-schema/  # b
 ```
 
 Note: schema regen ran against the PATH binary = **0.149.0**; the REA lane report's
-"0.155.1 target" header is contradicted by the trial evidence — the saved schema set is a
+"0.155.1 target" header is contradicted by the trial evidence: the saved schema set is a
 0.149.0 capture. Method counts (95/10/75/1) came from a script over the 291 files, not
 manual enumeration.
 
 ## 3. WHAT IT UNLOCKS
 
-Codex can be driven by *any* program — Python, Go, a web service — without screen-scraping
+Codex can be driven by *any* program (Python, Go, a web service) without screen-scraping
 the terminal UI. The CLI hands you a typed, machine-readable contract for its full
 capability set: start agent threads, stream turns, execute commands in a PTY, read/write the
 host filesystem, flip config and experimental features, manage MCP servers, skills, and
-plugins — all over a JSON-RPC socket. You no longer need to know how the binary works
+plugins, all over a JSON-RPC socket. You no longer need to know how the binary works
 internally; it tells you its own API on demand.
 
 ## 4. HOW A DEVELOPER BUILDS ON IT
@@ -115,7 +115,7 @@ internally; it tells you its own API on demand.
 6. Suppress noise: pass `optOutNotificationMethods: ["thread/started", ...]` in
    `initialize` capabilities.
 
-Watch out: the schema references methods that do not exist — `process/spawn`,
+Watch out: the schema references methods that do not exist: `process/spawn`,
 `thread/turns/list`, `thread/items/list` are named in doc comments but absent from
 `ClientRequest` (verified, 0.149.0). No client request starts a realtime session either
 (all `thread/realtime/*` notifications are EXPERIMENTAL with no request method). Do not
