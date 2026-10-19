@@ -15,6 +15,11 @@ Three CLIs taken apart byte-by-byte — Google's `agy` (Antigravity), Anthropic'
 
 ## The three control planes at a glance
 
+![control planes diagram](diagrams/control-planes-overview.svg)
+
+<details>
+<summary>Diagram source (mermaid)</summary>
+
 ```mermaid
 flowchart LR
     subgraph AGY["agy — Antigravity"]
@@ -34,6 +39,8 @@ flowchart LR
     end
     YOU(["you / your scripts"]) --> LS & SC & BYO & GTW & MCP & CLD & AS & CM & AR
 ```
+
+</details>
 
 ## What this unlocks (in plain English)
 
