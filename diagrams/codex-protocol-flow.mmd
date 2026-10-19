@@ -1,0 +1,35 @@
+%% =============================================================
+%% codex-protocol-flow.mmd — app-server driver loop, reverse-RPC
+%% approvals, transports, code-mode-host
+%% Source: ~/workspace/rea-codex/deep-dive/REPORT.md findings 1–4
+%%         (A protocol: 95 c2s / 10 s2c requests / 75 s2c notifs,
+%%          v2-over-v1; D code-mode-host)
+%% =============================================================
+flowchart TD
+    INIT["initialize (v1 handshake)<br/>then speak v2 methods over it"]
+
+    TSTART["thread/start"]
+    TURN["turn/start"]
+    STEER["turn/steer<br/>(expectedTurnId precondition)<br/>| turn/interrupt"]
+    REPEAT["repeat: next turn"]
+
+    INIT --> TSTART
+    TSTART --> TURN
+    TURN --> STEER
+    STEER --> REPEAT
+    REPEAT --> TURN
+
+    subgraph RPC["10 server→client requests — client MUST answer"]
+        R1["item/commandExecution/requestApproval<br/>item/fileChange/requestApproval<br/>item/permissions/requestApproval"]
+        R2["item/tool/requestUserInput<br/>mcpServer/elicitation/request"]
+        R3["item/tool/call<br/>(server delegates dynamic<br/>tool call to client)"]
+        R4["account/chatgptAuthTokens/refresh<br/>attestation/generate<br/>applyPatchApproval (legacy)<br/>execCommandApproval (legacy)"]
+    end
+
+    TRANS["Transports: stdio:// (default) |<br/>unix://[PATH] | ws://IP:PORT | off<br/>--remote-auth-token-env names<br/>bearer-token env var.<br/>No jsonrpc:2.0 version field on wire<br/>(NDJSON); 75 s2c notifications."]
+
+    HOST["code-mode-host: Rust + V8 (rusty_v8)<br/>executes raw JS cells from main binary.<br/>Transports: stdio length-framed IPC<br/>(hello/ready handshake) or tonic gRPC<br/>codex.code_mode.v1.CodeModeHost:<br/>OpenSession/Execute/Wait/CancelWait/<br/>SubscribeToToolCalls/CompleteToolCall...<br/>Tool calls delegated BACK to main<br/>process (thin sandbox: setTimeout only)."]
+
+    TSTART -.-> RPC
+    TSTART -.-> TRANS
+    TSTART -.-> HOST

@@ -1,0 +1,31 @@
+%% =============================================================
+%% agy-safety-pipeline.mmd — per-step tool-call safety screen
+%% Source: ~/workspace/rea-agy/deep-dive/REPORT.md finding 2
+%%         (A5 internal intel; embedded MonitorsConfig, 3 monitors,
+%%          all EXECUTION_PHASE_PRE_TOOL, server-overridable)
+%% =============================================================
+flowchart TD
+    TC["Tool call emitted by agent"]
+
+    PHASE["EXECUTION_PHASE_PRE_TOOL<br/>runs at EVERY tool-call step<br/>(not sampled)"]
+
+    M1["agy_tool_safety<br/>heuristic allowlist<br/>action: LOG<br/>budget: 1s"]
+
+    M2["sir_flash_lite<br/>flash-lite triage<br/>thinking: MINIMAL, 16k tokens<br/>action: LOG, budget: 8s"]
+
+    M3["severe_internal_risks_agy<br/>flash reviewer<br/>thinking: LOW<br/>action: BLOCK, budget: 8s<br/>carries 10.7KB rubric"]
+
+    ALLOW["ALLOW → tool executes"]
+    BLOCKED["BLOCK → tool call denied"]
+
+    NOTE["Server-overridable:<br/>externalMonitorConfigManager<br/>can replace embedded config;<br/>embedded = stale fallback.<br/>Monitor taxonomy gdm/security/agi_control<br/>supports staged rollout / A-B by user group."]
+    ENVNOTE["AGY_CLI_DISABLE_SAFETY_FILTERING<br/>string present, honored? UNVERIFIED"]
+
+    TC --> PHASE
+    PHASE --> M1
+    M1 --> M2
+    M2 --> M3
+    M3 -->|clean| ALLOW
+    M3 -->|rubric hit| BLOCKED
+    PHASE -.-> NOTE
+    TC -.-> ENVNOTE

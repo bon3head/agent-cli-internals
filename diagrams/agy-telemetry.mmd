@@ -1,0 +1,24 @@
+%% =============================================================
+%% agy-telemetry.mmd — three telemetry pipelines + kill switches
+%% Source: ~/workspace/rea-agy/deep-dive/REPORT.md finding 5
+%%         (A4 telemetry; adjudication: --disable_telemetry REFUTED
+%%          as a frontend CLI flag)
+%% =============================================================
+flowchart TD
+    EVT["Agent events<br/>(prompts, file paths, tool-call args,<br/>URLs + markdown; SensitiveData tiers<br/>+ redaction machinery)"]
+
+    P1["P1 Clearcut<br/>buffered flush + retry<br/>OAuth cclog scope<br/>+ metalogger (telemetry<br/>about telemetry)"]
+    CC["https://play.googleapis.com/log"]
+
+    P2["P2 BAIC gRPC<br/>skipped when not logged in<br/>or on business auth"]
+    BAIC["businessaicode.v1beta.<br/>TelemetryService"]
+
+    P3["P3 error reporting<br/>sentry-go<br/>DSN from env only,<br/>no hardcoded DSN<br/>(+ cel crash client,<br/>CLI wiring inconclusive)"]
+    DSN["SENTRY_DSN env"]
+
+    KILL["Kill switches: SERVER-SIDE ONLY<br/>telemetry_enabled ✓<br/>user_data_collection_force_disabled ✓<br/>admin disable_telemetry ✓<br/>telemetryEnabled JSON key ✓<br/><br/>NO CLI kill switch:<br/>--disable_telemetry as a frontend<br/>flag REFUTED (help short-circuits<br/>parsing; strict tests exit 2)"]
+
+    EVT --> P1 --> CC
+    EVT --> P2 --> BAIC
+    EVT --> P3 --> DSN
+    EVT -.-> KILL

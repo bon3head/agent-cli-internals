@@ -1,0 +1,28 @@
+%% =============================================================
+%% agy-control-plane.mmd — Antigravity CLI transport topology
+%% Source: ~/workspace/rea-agy/deep-dive/REPORT.md findings 1, 6, 10
+%%         (A1 control planes; a1-control-planes.md for tokens/endpoints)
+%% =============================================================
+flowchart LR
+    subgraph Local["Local control surfaces"]
+        LT["Local tools / CLI<br/>(holds exported tokens)"]
+        SIDECAR["Sidecar Node HTTP server<br/>127.0.0.1:&lt;ANTIGRAVITY_SIDECAR_WEB_PORT&gt;<br/>x-sidecar-token / ?token="]
+        MICSERVE["agy mic-serve<br/>127.0.0.1:4713<br/>mic audio loopback"]
+        SOCK["jetski_connectd.sock<br/>/run/user/&lt;uid&gt;/<br/>sandbox exec IPC"]
+    end
+
+    LS["LanguageServerService<br/>exa.language_server_pb<br/>localhost:5387 (ConnectRPC)<br/>341 methods"]
+
+    subgraph Remote["Remote mesh"]
+        BOQ["BOQ ApiService<br/>18 methods<br/>InitiateMeshSession →<br/>Poll/SendSignalingMessages →<br/>ProxyCommand/StreamProxyCommand"]
+        PROXY["Google-hosted proxy<br/>URL NOT in binary:<br/>Mendel flag<br/>remote-control-proxy-server-url"]
+    end
+
+    LT -->|x-codeium-csrf-token<br/>(from ANTIGRAVITY_CSRF_TOKEN)| LS
+    LT -->|x-sidecar-token header| SIDECAR
+    SIDECAR -->|shells out to LS<br/>(ANTIGRAVITY_LS_ADDRESS +<br/>ANTIGRAVITY_CSRF_TOKEN injected)| LS
+    LT -->|mic audio| MICSERVE
+    LT -->|sandbox exec verbs<br/>(unenumerated)| SOCK
+    LS -->|GetRemoteControlInfo| BOQ
+    BOQ -->|gRPC| PROXY
+    PROXY -->|remote-drive-a-CLI| LT

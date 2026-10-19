@@ -1,0 +1,31 @@
+%% =============================================================
+%% claude-permission-flow.mmd — permission decision engine + rule gotchas
+%% Source: ~/workspace/rea-claude/deep-dive/REPORT.md findings 2, 3
+%%         (C1 settings/permissions; Zt() decision engine, Twe() rule
+%%          validator, 5 settings sources, .passthrough() schema)
+%% =============================================================
+flowchart TD
+    CALL["Tool call enters<br/>permission check"]
+
+    TIER1{"TIER: deny<br/>first match?"}
+    TIER2{"TIER: ask<br/>first match?"}
+    TIER3{"TIER: allow<br/>first match?"}
+
+    DENY["DENY<br/>decisionReason: rule"]
+    ASK["ASK user"]
+    ALLOW["ALLOW"]
+    PASS["passthrough<br/>(no rule matched)"]
+
+    CALL --> TIER1
+    TIER1 -->|match| DENY
+    TIER1 -->|no match| TIER2
+    TIER2 -->|match| ASK
+    TIER2 -->|no match| TIER3
+    TIER3 -->|match| ALLOW
+    TIER3 -->|no match| PASS
+
+    GOTCHA["Rule-authoring gotchas (Twe):<br/>Write(path), NotebookEdit(path),<br/>MultiEdit(path), Glob(path) are<br/>NEVER matched (warning only);<br/>use Edit(path) / Read(path).<br/>:* is Bash-only.<br/>allow-rules ban wildcard tool names.<br/>Bash(git *) matches bare git."]
+    SOURCES["5 settings sources, low to high:<br/>userSettings → projectSettings →<br/>localSettings → flagSettings (--settings)<br/>→ policySettings (managed, always on).<br/>--setting-sources toggles only first 3.<br/>Schema .passthrough(): unknown keys kept."]
+
+    CALL -.-> GOTCHA
+    CALL -.-> SOURCES

@@ -1,0 +1,27 @@
+%% =============================================================
+%% claude-cloud-attach.mmd — cloud session lifecycle + flag matrix
+%% Source: ~/workspace/rea-claude/deep-dive/REPORT.md finding 5
+%%         (C2 cloud/gateway; gs per-flag treatment matrix, streaming
+%%          frames over /v1/code/agent-proxy, wake-on-comment,
+%%          credential denial set)
+%% =============================================================
+flowchart TD
+    CREATE["claude --cloud &lt;description&gt;<br/>create (or --environment<br/>ccpool_... self-hosted runner)"]
+
+    FLAGS["Per-flag treatment matrix:<br/>REFUSE: --dangerously-skip-permissions,<br/>--bare, --restricted, --safe-mode,<br/>SDK MCP servers, attach-time<br/>--tools/--max-turns/--max-budget-usd<br/>DROP (silent): --watch-artifact,<br/>--add-dir, --plugin-dir, --chrome...<br/>CLIENT-ONLY: --debug, --verbose,<br/>--output-format, --input-format...<br/>FORWARD at create: --model, --name,<br/>--effort, --system-prompt*,<br/>--thinking*, --permission-mode (non-bypass)"]
+
+    PROXY["Streaming frames over<br/>/v1/code/agent-proxy:<br/>cloud_session, worker_frame,<br/>workerEpoch, dirSync,<br/>initialMessage..."]
+
+    ATTACH["claude --cloud &lt;session_id | url&gt;<br/>attach to session session_... / cse_..."]
+    WAKE["wake-on-comment:<br/>server-pushed comment events<br/>+ client consent record"]
+
+    TELEPORT["claude --teleport &lt;session&gt;<br/>pull cloud session local<br/>with full history"]
+
+    DENIAL["Credential-denial set<br/>(byte-verbatim):<br/>credential files, macOS keychain,<br/>Windows Credential Manager,<br/>SSH keys, cloud-provider creds.<br/>Nothing was read or written.<br/>Signs in with machine's claude.ai login."]
+
+    CREATE --> FLAGS
+    FLAGS --> PROXY
+    PROXY --> ATTACH
+    ATTACH --> WAKE
+    ATTACH --> TELEPORT
+    ATTACH -.-> DENIAL
