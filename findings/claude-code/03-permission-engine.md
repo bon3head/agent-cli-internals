@@ -42,7 +42,7 @@ return{behavior:"passthrough",...} // "This command requires approval"
   `permissions.defaultMode` are **ignored from project/local settings** (`Kcs=["auto",
   "bypassPermissions"]`; `"only policy/user/flag settings may grant bypass mode
   (projectSettings and localSettings are repo-controllable)"`).
-- **`allowDangerouslySkipPermissions` is NOT a settings key** (absent from all 199 schema
+- **`allowDangerouslySkipPermissions` is NOT a settings key** (absent from all 183 schema
   keys) — CLI flag / VS Code IDE only. bypassPermissions also needs that consent; in
   non-interactive without consent the ignore is logged under
   `tengu_settings_bypass_unconsented_noninteractive_ignored`.

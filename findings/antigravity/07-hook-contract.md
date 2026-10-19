@@ -1,4 +1,8 @@
-# 07 — Full hook contract extracted (7 events, protojson stdin/stdout)
+# 07 — Full hook contract extracted (6 events, protojson stdin/stdout)
+
+> **Correction (2026-10-19, reinforcement):** downgraded from "7 events" to **6** — four independent
+> hunts found no 7th event; the "7" had no provenance in the lane artifacts. The 6 named events are
+> VERIFIED; telemetry enums additionally list pre/post-turn and compaction hook *types*.
 
 **Trial status:** CONFIRMED at suite level (17/17 on the same binary). Not separately re-trialed; stands on lane A2 evidence (byte-exact carve of the embedded `docs/hooks.md`).
 

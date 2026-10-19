@@ -8,8 +8,8 @@ Three CLIs taken apart byte-by-byte — Google's `agy` (Antigravity), Anthropic'
 
 ## The 30-second version
 
-- **Antigravity runs a 341-function control server on your own machine** (`localhost:5387`), drivable with curl. The binary prints the recipe.
-- **Codex documents its own protocol**: one built-in command prints all 95 API methods as JSON Schema.
+- **Antigravity exposes 889 RPC methods across 30 services** — including a 348-method local control server (`localhost:5387`) drivable with curl. The binary prints the recipe.
+- **Codex documents its own protocol**: one built-in command prints all 102 API methods as JSON Schema.
 - **Claude Code's 41MB app was carved out as readable JavaScript** — permissions, settings, cloud, all searchable text now.
 - **The binaries draw the public-vs-internal line themselves**: Mythos 5/5.1 is the genuinely internal-only model family; Fable 5/5.1 and GPT-6 Astra are public.
 
@@ -23,7 +23,7 @@ Three CLIs taken apart byte-by-byte — Google's `agy` (Antigravity), Anthropic'
 ```mermaid
 flowchart LR
     subgraph AGY["agy — Antigravity"]
-        LS["LanguageServerService<br/>341 methods · ConnectRPC<br/>localhost:5387"]
+        LS["LanguageServerService<br/>348 methods · ConnectRPC<br/>localhost:5387"]
         SC["sidecar web server<br/>token-authed local HTTP"]
         BYO["AGY_LLM_GATEWAY_*<br/>bring-your-own-model"]
     end
@@ -33,7 +33,7 @@ flowchart LR
         CLD["cloud attach<br/>agent-proxy frames"]
     end
     subgraph CODEX["codex — Codex CLI"]
-        AS["app-server<br/>95 methods · JSON-RPC-ish"]
+        AS["app-server<br/>102 methods · JSON-RPC-ish"]
         CM["code-mode-host<br/>Rust embedding V8"]
         AR["auto_review seat<br/>AI approves tool calls"]
     end
@@ -44,9 +44,9 @@ flowchart LR
 
 ## What this unlocks (in plain English)
 
-**1. Drive the Antigravity agent from plain web requests.** 341 control functions on a local server — start the agent, send messages, install plugins, open terminals — and the program's own help text contains the exact curl recipe. No SDK needed.
+**1. Drive the Antigravity agent from plain web requests.** 348 control functions on a local server — start the agent, send messages, install plugins, open terminals — and the program's own help text contains the exact curl recipe. No SDK needed. (The full binary exposes 889 RPC methods across 30 services — finding #1.)
 
-**2. Codex prints its own instruction manual.** One built-in command emits all 95 API methods as JSON Schema. Programmers stop guessing; the map comes from the tool itself.
+**2. Codex prints its own instruction manual.** One built-in command emits all 102 API methods as JSON Schema. Programmers stop guessing; the map comes from the tool itself.
 
 **3. Claude Code's brain is now searchable text.** 41MB of internal JavaScript pulled byte-exact from the binary. Permissions, settings, cloud features — grep instead of guess.
 
@@ -86,24 +86,34 @@ Verbatim bytes from the binaries (offsets in the finding docs):
 
 Actual carved sources in [`carved/`](carved/): the Mythos registry entries as JSON, a slice of the real minified shipped JS around the model-alias table (`best:"fable"`), and the opening of Antigravity's embedded 10.7KB safety pre-filter prompt — the secret rubric that screens every agent action.
 
-And the advantage: [`pocs/`](pocs/) turns the cracks into tools — a permission-rule **simulator** that predicts allow/deny before you run anything, a settings **validator** against the recovered 199-key schema, a surface **enumerator** for agy's 341-method control plane, and a model-catalog **differ** that flags new models, deprecations, and kill-switch flips on every future build.
+And the advantage: [`pocs/`](pocs/) turns the cracks into tools — a permission-rule **simulator** that predicts allow/deny before you run anything, a settings **validator** against the recovered 183-key schema, a surface **enumerator** for agy's control plane, and a model-catalog **differ** that flags new models, deprecations, and kill-switch flips on every future build.
 
 ## Findings index, ranked by bigness
 
 | # | Finding | Tool |
 |---|---------|------|
-| 1 | [Local control plane: 341 methods, drivable with curl](findings/antigravity/01-local-control-plane.md) | agy |
-| 2 | [Self-documenting protocol: 95 methods from the binary's own schema generator](findings/codex/01-app-server-protocol.md) | codex |
+| 1 | [The 889-method RPC service map: 30 services from codegen symbols](findings/antigravity/13-rpc-service-map.md) | agy |
+| 2 | [Self-documenting protocol: 102 methods from the binary's own schema generator](findings/codex/01-app-server-protocol.md) | codex |
 | 3 | [Entire app carved out as 41MB of searchable JavaScript](findings/claude-code/01-bundle-surgery.md) | claude |
 | 4 | [Model families: Fable 5/5.1 (public) and Mythos 5/5.1 (internal-only)](findings/claude-code/10-fable-mythos.md) | claude |
-| 5 | [Per-step safety screen: 3 monitors, server-overridable](findings/antigravity/02-safety-screen.md) | agy |
-| 6 | [Gateway is a full self-hostable HTTP server, not just auth](findings/claude-code/06-gateway-server.md) | claude |
-| 7 | [Code-mode host: a Rust binary embedding V8 that runs raw JS cells](findings/codex/04-code-mode-host.md) | codex |
-| 8 | [Permission engine decoded: deny > ask > allow, simulated exactly](findings/claude-code/03-permission-engine.md) | claude |
-| 9 | [Sanctioned bring-your-own-model path (`AGY_LLM_GATEWAY_*`)](findings/antigravity/12-byo-model-path.md) | agy |
-| 10 | [Rate limits are readable AND redeemable (idempotency-keyed reset credits)](findings/codex/07-rate-limits.md) | codex |
-| 11 | [The CLI is its own MCP server; first-party Gmail/GCal hosts](findings/claude-code/07-mcp-plane.md) | claude |
-| 12 | [Telemetry: three pipelines, no program-level kill switch](findings/antigravity/05-telemetry.md) | agy |
+| 5 | [Local control plane: 348 methods, drivable with curl](findings/antigravity/01-local-control-plane.md) | agy |
+| 6 | [GrowthBook is the experiment SDK — every `tengu_*` gate is a GrowthBook evaluation](findings/claude-code/13-growthbook-experiment-sdk.md) | claude |
+| 7 | [The autonomy roadmap is a config surface: six experimental structs, fully field-recovered](findings/codex/11-roadmap-struct-fields.md) | codex |
+| 8 | [Gateway is a full self-hostable HTTP server, not just auth](findings/claude-code/06-gateway-server.md) | claude |
+| 9 | [Per-step safety screen: 3 monitors, server-overridable](findings/antigravity/02-safety-screen.md) | agy |
+| 10 | [Code-mode host: a Rust binary embedding V8 that runs raw JS cells](findings/codex/04-code-mode-host.md) | codex |
+| 11 | [Permission engine decoded: deny > ask > allow, simulated exactly](findings/claude-code/03-permission-engine.md) | claude |
+| 12 | [Update signing (RSA-4096 SPKI), Datadog sink, event logging](findings/claude-code/16-update-signing-datadog.md) | claude |
+| 13 | [Sanctioned bring-your-own-model path (`AGY_LLM_GATEWAY_*`)](findings/antigravity/12-byo-model-path.md) | agy |
+| 14 | [Cloud Run auto-updater: the real update host](findings/antigravity/15-cloud-run-updater.md) | agy |
+| 15 | [Rate limits are readable AND redeemable (idempotency-keyed reset credits)](findings/codex/07-rate-limits.md) | codex |
+| 16 | [The CLI is its own MCP server; first-party Gmail/GCal hosts](findings/claude-code/07-mcp-plane.md) | claude |
+| 17 | [Unleash: the second flag system](findings/antigravity/14-unleash-flag-system.md) | agy |
+| 18 | [Gateway full route table (18 paths)](findings/claude-code/15-gateway-route-table.md) | claude |
+| 19 | [The code-mode sandbox is exactly 14 injected names (and no more)](findings/codex/12-cell-globals.md) | codex |
+| 20 | [Hidden commands + unregistered `claude daemon`](findings/claude-code/14-hidden-commands.md) | claude |
+| 21 | [Telemetry: three pipelines, no program-level kill switch](findings/antigravity/05-telemetry.md) | agy |
+| 22 | [The 0.149.0 → 0.155.1 feature-flag delta + hidden `--managed-daemon`](findings/codex/13-flag-delta-managed-daemon.md) | codex |
 
 ## For developers
 
@@ -122,7 +132,9 @@ And the advantage: [`pocs/`](pocs/) turns the cracks into tools — a permission
 
 **Re-verification:** 38 of 39 trials CONFIRMED live against the installed binaries; 1 PARTIAL (`claude mcp list` hangs doing live health checks — functions, but unbounded without a timeout). All PoCs exit 0. Per-byte evidence (offsets, quoted literals) is given in each finding so claims can be re-derived.
 
-**What was NOT verified:** wire behavior of any protocol (no network allowed — per-method auth, framing, concurrency are from schemas/strings, not observation); a live Antigravity language server (nothing was listening — probing it needs a running server with a valid CSRF token); whether `AGY_CLI_DISABLE_SAFETY_FILTERING` is honored; servability of Mythos 5 via any real API (internal-only; Fable 5/5.1 and GPT-6 Astra are public models — the open question there is plan-gated CLI access, not existence); per-key config defaults (~90/101 keys each); numeric telemetry tunables. Gaps are labeled in-line, never smoothed over.
+**Reinforcement (2026-10-19, independent tools — reverify, yara, LIEF, raw pread):** 40 load-bearing claims re-verified (8 claude + 17 codex + 15 agy), **15 figures corrected** (claude: 199→183 keys, 1965→2133 manifest rows, "128"→549 gates; codex: 95/10/75/1→102/10/82/1, 97/101→101/101 fields; agy: 341→348/350 methods, BOQ 18→19, secrets 2→3, hooks 7→6, env 42→43), **9 claims downgraded/refuted** (incl. `sprofile` — never existed; the `[UNSTABLE] FOR OPENAI INTERNAL USE ONLY` marker — zero hits in 0.155.1; bulk prior `@`-offsets on agy), **6/6 kills confirmed**, ~281 new CONFIRMED internals. The systemic cause of the count errors — lossy packed-string-run tokenizing — is documented in [methodology](methodology/README.md) with the correct methods.
+
+**What was NOT verified:** wire behavior of any protocol (no network allowed — per-method auth, framing, concurrency are from schemas/strings, not observation); a live Antigravity language server (nothing was listening — probing it needs a running server with a valid CSRF token); whether `AGY_CLI_DISABLE_SAFETY_FILTERING` is honored; servability of Mythos 5 via any real API (internal-only; Fable 5/5.1 and GPT-6 Astra are public models — the open question there is plan-gated CLI access, not existence); per-key config defaults (~90/101 codex keys); numeric telemetry tunables; chunk-manifest u32 semantics (5 hypotheses dead, not re-chased); per-method auth on all surfaces. Gaps are labeled in-line, never smoothed over.
 
 **Limits of the record:** Codex scratchpads for lanes A, C, D, E were reconstructed post-hoc from the lane deliverables (honest reconstruction headers inside). Where a finding was refuted (Agy's `--disable_telemetry` CLI-flag claim; the "Fable 5/5.1 unreleased" framing), the refutation is kept in the repo as a kill — a documented kill is a finding.
 

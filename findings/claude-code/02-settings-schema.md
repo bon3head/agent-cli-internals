@@ -1,4 +1,9 @@
-# 02 — Settings schema fully recovered: 199 typed keys (C1)
+# 02 — Settings schema fully recovered: 183 typed keys (C1)
+
+> **Correction (2026-10-19, reinforcement):** the "199 keys" figure is withdrawn. Independent
+> re-carve of `Ia()` yields **183** typed keys; the 199 was 183 (Ia) + 7 managed-restriction-list-only
+> keys + 9 junk rows in the prior lane's own table (the prior scratchpad itself said "192 parsed" —
+> the 199 was never internally consistent). `.passthrough()` re-confirmed (4 hits).
 
 **Target pinned:** claude CLI 2.1.287 · Bun-compiled ELF 64-bit x86-64, NOT stripped · 244,317,368 bytes ·
 `/home/hatch/.local/share/claude/versions/2.1.287`
@@ -13,9 +18,9 @@ usage patterns.
 ## 1. WHAT WAS FOUND
 
 The entire settings schema is built by `function Ia()` at binary offset **199028346** (69 KB),
-returning 192 field definitions merged with 5 unit shapes (`autoMode`, `deepLink`, `voice`,
-`briefView`, `screenReader`) — dumped verbatim to `ia-func.txt` / `ia-schema-parsed.txt`
-(199 keys total, each with zod type + describe). Byte-level anchors:
+returning **183** field definitions — dumped verbatim to `ia-func.txt` / `ia-schema-parsed.txt`
+(183 keys, each with zod type + describe). (Prior revisions said 192/199; the reinforcement
+re-carve is byte-exact and the 183 is VERIFIED.) Byte-level anchors:
 
 - The assembled schema is **`u(shape).passthrough()`** (CONFIRMED: from the schema class,
   `An.whole(){return this.wholeSchema??=u(this.shapeOf(this.keys)).passthrough()}`) —
@@ -80,7 +85,7 @@ settings silently ignored in `-p` mode) is now diagnosable offline.
 - **Precedence rules to hard-code:** merge order user → project → local → `--settings` →
   managed; `--setting-sources` never disables `--settings` or managed policy; `true` in
   `blockReadsOutsideWorkingDirectories` in *any* source wins (OR-semantics).
-- **The 199-key reference:** `ia-schema-parsed.txt` is the complete key list with types +
+- **The 183-key reference:** `ia-schema-parsed.txt` is the complete key list with types +
   describes — generate IDE autocompletion / docs from it rather than re-extracting.
   ([ia-schema-parsed.txt](sandbox://workspace/rea-claude/deep-dive/ia-schema-parsed.txt))
 - **Managed lockdown recipe:** ship `/etc/claude-code/managed-settings.json` with

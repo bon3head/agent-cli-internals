@@ -1,5 +1,16 @@
 # Finding 01 — The binary ships its own app-server protocol spec
 
+> **Correction (2026-10-19, reinforcement):** the counts below pin to the STALE 0.149.0 schema
+> capture. Fresh emission from codex 0.155.1 (`codex app-server generate-json-schema --out`,
+> deterministic across runs, byte-identical) is **102 client→server requests, 10 server→client
+> requests, 82 server→client notifications, 1 client→server notification**. Delta is strictly
+> additive — removed: none. New requests (7): `plugin/reconcile`, `thread/attachment/{add,list,remove}`,
+> `thread/items/list`, `thread/revert`, `thread/turns/list`. New notifications (7):
+> `mcpServer/event/stream/notification`, `modelProvider/authRecovery{Started,Completed}`,
+> `thread/attachment/updated`, `thread/realtime/item/{started,completed,transcript/delta}`.
+> Fresh schema: 37 root JSON + `v1/` (2 files) + `v2/` (273 files), at
+> `~/workspace/re-suite/findings/codex/schema-0.155.1/`.
+
 **Version pin:** schema claims verified against the app-server schema set saved at
 `~/workspace/rea-codex/app-server-schema/` (291 files). Trials (2026-10-18, 8/8 CONFIRMED)
 show this set is byte-identical to what `codex app-server generate-json-schema --out`
@@ -12,9 +23,9 @@ The Codex CLI contains a built-in command that dumps its entire programmatic
 interface as typed JSON Schema:
 
 - `codex app-server generate-json-schema --out <dir>` (and `generate-ts` for TypeScript bindings)
-- Emits **95 client→server requests, 10 server→client requests, 75 server→client
-  notifications, 1 client→server notification** — counts script-verified against the 291
-  schema files, not hand-counted.
+- Emits **102 client→server requests, 10 server→client requests, 82 server→client
+  notifications, 1 client→server notification** on 0.155.1 (95/10/75/1 was the stale 0.149.0
+  capture — see correction note above) — counts script-verified against the schema files, not hand-counted.
 - The definitions come from compiled-in ts-rs Rust types (`codex-rs/app-server`), i.e. the
   spec is generated from the same structs the server actually parses, so it cannot drift from
   the implementation the way hand-written docs do.

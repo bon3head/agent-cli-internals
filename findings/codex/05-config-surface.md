@@ -1,4 +1,13 @@
-# Finding 05 — Config: 97 of 101 fields recovered, 10-layer precedence
+# Finding 05 — Config: 101 of 101 fields recovered, 10-layer precedence
+
+> **Correction (2026-10-19, reinforcement):** the "97 of 101" figure is withdrawn — the true
+> figure is **101/101**, recovered from the actual serde `FIELDS: &[&str]` statics (101 consecutive
+> `(ptr,len)` pairs @0xfcc98c0, byte-identical duplicate @0xfe370d0). Of the prior's 97: 82 correct
+> in order, 15 misattributed to other structs, 16 true fields missed. **`sprofile` never existed**
+> — it was `js_repl_node_module_dirs` + `profile` + `profiles` misread at ptr level (claim killed).
+> Precedence corrections: `sessionFlags` ≡ the `-c` layer (prior double-counted); `legacyManaged`
+> loads topmost per the schema description, not 5th; only 7/10 layer-name strings verify
+> (`user`/`system`/`profile` unattributable).
 
 **Version pin:** field list recovered from the **0.155.1** bun binary (serde `FIELDS`
 literals; config-surface.md §1–2). Trials did not regenerate config strings against
@@ -7,10 +16,10 @@ before relying on a specific key.
 
 ## 1. WHAT WAS FOUND
 
-- **`struct ConfigToml with 101 elements`; 97 recovered** in declaration order from packed
-  serde field-name literals (validated by element counts and adjacency pairs); 4 fields
-  unrecovered. Mystery survivor: a top-level field named **`sprofile`** — name recovered,
-  purpose UNKNOWN.
+- **`struct ConfigToml with 101 elements`; all 101 recovered** in declaration order from the
+  serde `FIELDS: &[&str]` statics (101 consecutive `(ptr,len)` pairs @0xfcc98c0, byte-identical
+  duplicate @0xfe370d0) — the correct method; packed-string-run tokenizing was lossy (see
+  correction note above).
 - **10-layer precedence, lowest → highest:** packagedDefaults → mdm → system →
   enterpriseManaged → legacyManaged → user (`~/.codex/config.toml`, repointable via
   `CODEX_HOME`) → profile (`-p`) → project → sessionFlags → `-c key=value` dotted
@@ -38,10 +47,9 @@ before relying on a specific key.
   `ConfigReadResponse.json` carries verbatim enums and defaults (e.g. `WebSearchMode:
   [disabled, cached, indexed, live]`).
 
-**CONFIRMED vs INFERENCE:** the 97-field inventory, the 10-layer order, and per-section
+**CONFIRMED vs INFERENCE:** the 101-field inventory, the 10-layer order, and per-section
 field lists are CONFIRMED from binary strings + schema + help. Per-key *defaults* are
-UNCONFIRMED for ~90 keys (defaults were not found as literals). The 4 unrecovered fields
-and `sprofile`'s purpose are UNKNOWN.
+UNCONFIRMED for ~90 keys (defaults were not found as literals).
 
 ## 2. HOW IT WAS FOUND
 

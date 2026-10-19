@@ -1,5 +1,11 @@
 # 10 — Remote-control mesh + mic-serve + sandbox IPC mapped
 
+> **Correction (2026-10-19, reinforcement):** BOQ is **19** methods, not 18 — `ForwardStreamProxyCommand`
+> proven via `(*UnimplementedApiServiceServer).ForwardStreamProxyCommand` @39064156,
+> `_ApiService_ForwardStreamProxyCommand_Handler` @39066155, and a serialized MethodDescriptorProto
+> @95227010. Prior-pass `@`-offsets in this doc did not reproduce; corrected below where the rigor
+> lane re-derived them.
+
 **Trial status:** CONFIRMED at suite level (17/17 on the same binary). Port probe: `127.0.0.1:4713` CLOSED at trial time (`agy mic-serve` is a subcommand but nothing is serving). The BOQ/signaling claims were not live-probed (no daemon running; proxy URL is server-driven).
 
 ---
@@ -8,11 +14,11 @@
 
 Three remote/local-audio/sandbox surfaces, all loopback or socket based (CONFIRMED, strings tier):
 
-**BOQ ApiService — remote-control signaling plane.** `devtools_jetski_boq_api_proto.ApiService`, 18 real methods: `ConnectInstance`, `ConnectInstanceV2`, `DeleteInstance`, `EvictInstance`, `ForwardProxyCommand`, `InitiateMeshSession`, `ListAuthorizedDevices`, `ListInstances`, `NotifyUser`, `PollSignalingMessages`, `ProxyCommand`, `RecordClientEvent`, `RecordTrajectoryAnalytics`, `RegisterWebPush`, `RevokeAuthorizedDevice`, `SendSignalingMessage`, `StreamProxyCommand`, `UpdateInstance`. Mesh flow: `InitiateMeshSession` → `PollSignalingMessages` / `SendSignalingMessage` → `ProxyCommand` / `StreamProxyCommand` (the v2/streaming variants imply streaming RPCs, consistent with a remote-terminal mesh). **The proxy URL is NOT in the binary** — it comes from the Mendel feature flag `remote-control-proxy-server-url` (strings @24225050: `[RemoteControl] Staying disconnected: remote-control-proxy-server-url Mendel flag not available.`). Daemon installs as systemd unit `agy-remote-control.service` (strings @23114948; launchd/schtasks on other OSes); `--session` = login-scoped instead of boot. CLI: `agy remote-control start [--name] [--session]` | `status` | `stop`. Local daemon state readable via LS `GetRemoteControlInfo`. INFERENCE: the remote drive-a-CLI transport; not directly callable without the server URL.
+**BOQ ApiService — remote-control signaling plane.** `devtools_jetski_boq_api_proto.ApiService`, 19 real methods: `ConnectInstance`, `ConnectInstanceV2`, `DeleteInstance`, `EvictInstance`, `ForwardProxyCommand`, `ForwardStreamProxyCommand`, `InitiateMeshSession`, `ListAuthorizedDevices`, `ListInstances`, `NotifyUser`, `PollSignalingMessages`, `ProxyCommand`, `RecordClientEvent`, `RecordTrajectoryAnalytics`, `RegisterWebPush`, `RevokeAuthorizedDevice`, `SendSignalingMessage`, `StreamProxyCommand`, `UpdateInstance`. Mesh flow: `InitiateMeshSession` → `PollSignalingMessages` / `SendSignalingMessage` → `ProxyCommand` / `StreamProxyCommand` (the v2/streaming variants imply streaming RPCs, consistent with a remote-terminal mesh). **The proxy URL is NOT in the binary** — it comes from the Mendel feature flag `remote-control-proxy-server-url` (log line `[RemoteControl] Staying disconnected: remote-control-proxy-server-url Mendel flag not available.`). Daemon installs as systemd unit `agy-remote-control.service` (@91369332 / 0x5722fd8; launchd/schtasks on other OSes); `--session` = login-scoped instead of boot. CLI: `agy remote-control start [--name] [--session]` | `status` | `stop`. Local daemon state readable via LS `GetRemoteControlInfo`. INFERENCE: the remote drive-a-CLI transport; not directly callable without the server URL.
 
-**mic-serve — microphone loopback server.** `agy mic-serve [--addr]` (default `127.0.0.1:4713`) forwards this machine's mic to a CLI on another host (over SSH port-forward, per changelog @492007). Go package `google3/third_party/jetski/cli/audio/micserve` (`Serve`, `serveConn`). No HTTP routes in strings — raw loopback TCP audio. `ANTIGRAVITY_MIC` env var exists (single occurrence; semantics unknown).
+**mic-serve — microphone loopback server.** `agy mic-serve [--addr]` forwards this machine's mic to a CLI on another host (over SSH port-forward, per changelog @98754675). Go package `google3/third_party/jetski/cli/audio/micserve` (`Serve`, `serveConn`). No HTTP routes in strings — raw loopback TCP audio. `127.0.0.1:4713` literal VERIFIED @90525006 — but its status as the `--addr` *default* (vs an example) is UNVERIFIED at strings tier. `ANTIGRAVITY_MIC` env var exists (single occurrence; semantics unknown).
 
-**jetski_connectd.sock — sandbox exec IPC.** Unix socket `/run/user/<uid>/jetski_connectd.sock` (format string, offset ~36196905); plumbed into sidecar/sandbox exec config (`exebox.Config`). INFERENCE: sandbox exec control socket; protocol verbs unenumerated (out of strings tier). Daemon not present on this box.
+**jetski_connectd.sock — sandbox exec IPC.** Unix socket `/run/user/<uid>/jetski_connectd.sock` (format string `/run/user/%d/jetski_connectd.sock` @91662994; literal @91663047); plumbed into sidecar/sandbox exec config (`exebox.Config`). INFERENCE: sandbox exec control socket; protocol verbs unenumerated (out of strings tier). Daemon not present on this box.
 
 **MCP child processes:** `agy mcp add|remove|list|enable|disable` (subcommands verified live: `agy mcp --help` → exit 0). Servers spawn as child processes over stdio; OAuth tokens in `mcp_oauth_tokens.json`. No listener of its own — the sanctioned extension path.
 
@@ -22,7 +28,7 @@ Target pinned: `agy` v1.3.1, sha256 `085f43e0d0628a8a8dabe1e547067818fa2c0adc86c
 
 ## 2. HOW IT WAS FOUND
 
-Lane A1 (control planes). BOQ method list via deconcat heuristics in `pocs/a1_enumerate_surfaces.py` (full `/...ApiService/Method` path literals confirm methods observed only in concat form, e.g. `EvictInstancetrace`). Remote-control installer strings and the Mendel-flag log line at @24225050. mic-serve package paths from pclntab symbols + changelog @492007. Trial: `timeout 2 bash -c '</dev/tcp/127.0.0.1/4713'` → connection refused (CLOSED); `agy remote-control` present in `agy --help` subcommand list.
+Lane A1 (control planes). BOQ method list via deconcat heuristics in `pocs/a1_enumerate_surfaces.py`; reinforcement recount via full-path-prefix census + `UnimplementedApiServiceServer`/handler/descriptor symbols → 19 (`ForwardStreamProxyCommand` recovered). Remote-control installer strings (`agy-remote-control.service` @91369332) and the Mendel-flag log line (`remote-control-proxy-server-url` not available). mic-serve package paths from pclntab symbols + changelog @98754675. Prior `@24225050` / `@492007` offsets withdrawn (did not reproduce). Trial: `timeout 2 bash -c '</dev/tcp/127.0.0.1/4713'` → connection refused (CLOSED); `agy remote-control` present in `agy --help` subcommand list.
 
 ---
 

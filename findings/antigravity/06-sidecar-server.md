@@ -1,5 +1,9 @@
 # 06 — Sidecar web server: token-authenticated local HTTP agent handle
 
+> **Correction (2026-10-19, reinforcement):** prior-pass `@`-offsets in this doc did not reproduce
+> (reverify + `grep -boa` agree with each other, not with prior). Corrected offsets below, all in
+> the embedded Node bundle (`.noptrdata`).
+
 **Trial status:** CONFIRMED at suite level (17/17 on the same binary). Not separately re-trialed; stands on lane A1 evidence. Live only while a sidecar run is active — none was running at trial time.
 
 ---
@@ -8,16 +12,16 @@
 
 Each scheduled sidecar runs an **embedded Node HTTP server on `127.0.0.1:<ANTIGRAVITY_SIDECAR_WEB_PORT>`**. Byte evidence from the embedded Node bundle (CONFIRMED):
 
-- `BIND_HOST = '127.0.0.1'` (strings @42035173) with an in-code comment warning that binding a routable interface would publish the API unprotected.
-- Auth: header `x-sidecar-token` or `?token=`, value = `ANTIGRAVITY_SIDECAR_UI_TOKEN`; `#validateToken` (@42041996) requires it on all non-GET requests. `/preload.js` is unauthenticated. If no token is configured, auth is skipped entirely.
-- Routes (embedded class, @42035611-42041734):
-  - `POST /_sidecar/send-message` — `{conversationId, message, title?, projectId?}`
-  - `POST /_sidecar/new-conversation` — `{message, model?, projectId?}`
-  - `POST /_sidecar/get-conversation-metadata` — `{conversationId}`
+- `const BIND_HOST = '127.0.0.1';` @187272392 with an in-code comment warning that binding a routable interface would publish the API unprotected.
+- Auth: header `x-sidecar-token` or `?token=`, value = `ANTIGRAVITY_SIDECAR_UI_TOKEN`; `#validateToken` @187279440 (0xb29a850) requires it on all non-GET requests. `/preload.js` is unauthenticated. If no token is configured, auth is skipped entirely.
+- Routes (embedded class; corrected offsets):
+  - `POST /_sidecar/send-message` @187275674 — `{conversationId, message, title?, projectId?}`
+  - `POST /_sidecar/new-conversation` @187275865 — `{message, model?, projectId?}`
+  - `POST /_sidecar/get-conversation-metadata` @187276029 — `{conversationId}`
   - plus extensible `/_sidecar/*` per-sidecar routes.
 - Backing ops shell out to the LS over the Connect endpoint: `ANTIGRAVITY_LS_ADDRESS` + `ANTIGRAVITY_CSRF_TOKEN` are injected into the sidecar process env.
 
-Sidecar config lives at `~/.gemini/config/sidecars/<sidecar-id>/sidecar.json` (IDE/2.0-side; not present on this CLI-only box). LS spawns the sidecar manager via `language_server.(*Server).maybeStartSidecarManager` (@18857783). On this machine the LS itself was not running at trial time.
+Sidecar config lives at `~/.gemini/config/sidecars/<sidecar-id>/sidecar.json` (IDE/2.0-side; not present on this CLI-only box). LS spawns the sidecar manager via `language_server.(*Server).maybeStartSidecarManager` @40918120 (0x2705c9a; prior @18857783 did not reproduce). On this machine the LS itself was not running at trial time.
 
 Target pinned: `agy` v1.3.1, sha256 `085f43e0d0628a8a8dabe1e547067818fa2c0adc86cfac98a3c4492918f455ef`.
 

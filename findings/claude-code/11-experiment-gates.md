@@ -1,4 +1,12 @@
-# 11 — 128 codenamed experiment gates + grounded feature families (C5)
+# 11 — Codenamed experiment gates + grounded feature families (C5)
+
+> **Correction (2026-10-19, reinforcement):** the "128" figure is withdrawn as a count — no
+> 128-list artifact exists and the number is filter-dependent/unreproducible. Independent
+> re-enumeration finds **549 distinct gate names** (prior's 528 missed 21 real gates, incl.
+> `tengu_kairos_cron`). The phenomenon (codenamed `tengu_*` experiment namespace) is VERIFIED;
+> exact codenamed-form counts are not. Also: the experiment SDK is **GrowthBook**, not Statsig —
+> every `tengu_*` gate is a GrowthBook evaluation (remoteEval against `https://api.anthropic.com/`
+> with embedded SDK client key); see new doc `13-growthbook-experiment-sdk.md`.
 
 **Target pinned:** claude CLI 2.1.287 · Bun-compiled ELF 64-bit x86-64, NOT stripped · 244,317,368 bytes ·
 `/home/hatch/.local/share/claude/versions/2.1.287`
@@ -12,9 +20,9 @@ convolute) are ungrounded/unknown; `harbor_kite_cloud` needs an org UUID (env al
 
 ## 1. WHAT WAS FOUND
 
-528 distinct `C("tengu_*", default)` / `iB("tengu_*", default, ttl)` gate checks; **128 use the
-codenamed form `tengu_<adjective>_<noun>`** — the staged-rollout/experiment namespace (full list
-in `gate-checks.txt`). Gates resolve server-side via an installed `featureGateLookup`
+**549 distinct gate names** found on re-enumeration (prior said 528 — 21 real gates missed,
+incl. `tengu_kairos_cron`); the codenamed `tengu_<adjective>_<noun>` form is the
+staged-rollout/experiment namespace (full list in `gate-checks.txt`). Gates resolve server-side via an installed `featureGateLookup`
 (`function $6o(e){eL().featureGateLookup=e}`; lookup returns `===!0` with the compiled local
 default when unmapped); TTL form `iB(name, default, 300000)` (5-min cache).
 
@@ -61,8 +69,8 @@ cron loops cost pressure is visible in the effort-nudge experiments (high→medi
 ## 2. HOW IT WAS FOUND
 
 - Lane C5: string-table regex over the 343,861 unique strings → 2,735 `tengu_*` events
-  (`tengu-events.txt`), 545 gate checks (`gate-checks.txt`); 128 codename-form gates filtered
-  from the set; `featureGateLookup` install + check functions located by byte read.
+  (`tengu-events.txt`), 545 gate checks (`gate-checks.txt`); codename-form gates filtered
+  from the set (count filter-dependent — see correction note); `featureGateLookup` install + check functions located by byte read.
 - Grounding done gate-by-gate: each named gate above was traced to the function using it
   (e.g. `radiant_island` in the effort-nudge map `XO`, `wise_kite` in `c7()`), with the
   surrounding context quoted verbatim in `internal-intel.md`.

@@ -1,4 +1,4 @@
-# Finding 06 — Auth: five login types, one internal-only; session-level, not per-method
+# Finding 06 — Auth: five login types; session-level, not per-method
 
 **Version pin:** strings evidence from the **0.155.1** bun binary (auth-sessions.md §1–2;
 method shapes from the **0.149.0** schema set, which pins the login-type union and the
@@ -14,7 +14,11 @@ UNRECOVERABLE (self-redacting format strings — see §1).
 1. `apiKey` — `{apiKey}`; CLI: `codex login --with-api-key` (stdin).
 2. `chatgpt` — `{appBrand: "codex"|"chatgpt", codexStreamlinedLogin?, useHostedLoginSuccessPage?}` → response `{authUrl, loginId}` ("URL the client should open in a browser to initiate the OAuth flow"); CLI: `--with-access-token` (stdin, "CODEX_ACCESS_TOKEN" example env name).
 3. `chatgptDeviceCode` — headless device-code flow; CLI: `codex login --device-auth`. A separate type, not a flag.
-4. `chatgptAuthTokens` — **`[UNSTABLE] FOR OPENAI INTERNAL USE ONLY`** — inject `{accessToken (JWT), chatgptAccountId, chatgptPlanType?}` directly ("The access token must contain the same scopes that Codex-managed ChatGPT auth tokens have"). A direct token-injection vector; external clients should not use it.
+4. `chatgptAuthTokens` — inject `{accessToken (JWT), chatgptAccountId, chatgptPlanType?}` directly ("The access token must contain the same scopes that Codex-managed ChatGPT auth tokens have"). A direct token-injection vector; external clients should not use it.
+   > **Correction (2026-10-19, reinforcement):** the **`[UNSTABLE] FOR OPENAI INTERNAL USE ONLY`**
+   > marker text has **zero hits in 0.155.1** (two independent tools) — the marker claim is
+   > UNVERIFIED/downgraded. The `chatgptAuthTokens` login type itself is VERIFIED (serde blob
+   > @0xd1763d8–0xd1764a8).
 5. `amazonBedrock` — `[UNSTABLE] experimental` — `{apiKey, region}`; plus `amazonBedrockAccessKeys{accessKeyId, secretAccessKey, sessionToken?, region}` (schema, 0.149.0). Bedrock is first-class: setup wizard strings, `x-amzn-mantle-client-agent` header, `AWS_BEARER_TOKEN_BEDROCK`.
 
 **Token endpoints (binary strings, 0.155.1):**
@@ -23,10 +27,11 @@ UNRECOVERABLE (self-redacting format strings — see §1).
 - Account listing: `https://auth.openai.com/api/accounts` (shape: `access_token refresh_token client_id`).
 - Inference base: `https://chatgpt.com/backend-api/...` (exact path redacted by CLI output itself; `doctor` shows websocket `wss://chatgpt.com/backend-api/...`, HTTP 405 on GET).
 
-**`client_id` is scrubbed at compile time.** The strings contain format placeholders like
-`client_id*** Sensitive Data Redacted ***client_secret` — the literal is self-redacting,
-not merely absent. Exact `client_id` values and the device-flow authorize URL need
-network/dynamic tracing (UNVERIFIED).
+**`client_id` is never embedded.** Rust `format_args!` runtime placeholder (`client_id=` +
+`c0 0f`) — the value is composed at runtime, not scrubbed from strings.
+> **Correction (2026-10-19, reinforcement):** the "self-redacting format strings" attribution was
+> wrong — the `Sensitive Data Redacted` hits are aws-sdk-ssooidc crate text, not Codex scrubbing.
+> Exact `client_id` values and the device-flow authorize URL need network/dynamic tracing (UNVERIFIED).
 
 **Token storage** (`~/.codex/auth.json`, mode 0600 — field names only, values never recorded):
 top-level `auth_mode` (`ApiKey|Chatgpt|ChatgptDeviceCode|ChatgptAuthTokens|AmazonBedrock`),

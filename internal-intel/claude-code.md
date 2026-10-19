@@ -23,7 +23,7 @@ Two embedded catalogs: a signed compiled seed (v1468, issued 2026-10-01, key `cl
 
 ## Experiment gates (CONFIRMED)
 
-128 `tengu_<adjective>_<noun>` gates, server-driven via `featureGateLookup` with compiled local defaults. Grounded examples: `pewter_owl_model` (remote model-routing override; env `CLAUDE_CODE_PEWTER_OWL`), `curious_tower_stateless_models` (stateless-model allowlist), `saffron_*` (billing), `smooth_harbor` (extra-usage billing), `kairos_cron` (scheduling; killable via `CLAUDE_CODE_DISABLE_CRON`), `harbor_kite_cloud` (cloud sessions; needs `CLAUDE_CODE_HARBOR_KITE_CLOUD`). Family codenames: `kairos`=scheduling, `harbor`=cloud+billing, `fleetview`=background-agent roster, `violin`=cloud remote-tools, `grove`=policy/privacy UI, `cobalt`=artifacts (HIPAA/ZDR-gated), `lantern`=session wrap-up.
+549 distinct `tengu_*` gate names on re-enumeration (prior "128" count withdrawn as filter-dependent), evaluated through **GrowthBook** (not Statsig) — remoteEval against `https://api.anthropic.com/` with embedded SDK client key. Grounded examples: `pewter_owl_model` (remote model-routing override; env `CLAUDE_CODE_PEWTER_OWL`), `curious_tower_stateless_models` (stateless-model allowlist), `saffron_*` (billing), `smooth_harbor` (extra-usage billing), `kairos_cron` (scheduling; killable via `CLAUDE_CODE_DISABLE_CRON`), `harbor_kite_cloud` (cloud sessions; needs `CLAUDE_CODE_HARBOR_KITE_CLOUD`). Family codenames: `kairos`=scheduling, `harbor`=cloud+billing, `fleetview`=background-agent roster, `violin`=cloud remote-tools, `grove`=policy/privacy UI, `cobalt`=artifacts (HIPAA/ZDR-gated), `lantern`=session wrap-up.
 
 ## Product URLs and staging (CONFIRMED)
 

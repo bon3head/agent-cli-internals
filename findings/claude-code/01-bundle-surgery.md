@@ -7,14 +7,19 @@ note below records the nuance)
 **Confidence:** CONFIRMED (byte-level evidence). The chunk-manifest u32 semantics are INFERENCE/unresolved —
 5 hypotheses killed (see §2).
 
+> **Correction (2026-10-19, reinforcement):** the manifest holds **2133 rows**, not 1965 — the prior's
+> 1965 was the kind-`0x1e` subset; 168 rows carry other kind tags. JS bounds refined to
+> ≈[0xbd0d000, 0xe41d000] (52 KB table header at the claimed start, ~4 KB more JS past the claimed end).
+
 ---
 
 ## 1. WHAT WAS FOUND
 
 The app is one contiguous **41 MB minified JS blob** at file offsets **0xbd00000–0xe41c000**
 (41,009,152 bytes), embedded inside the `.bun` ELF section (file offset 0x54fe000, ~148 MB).
-A **1965-entry chunk manifest table** at **0x588c868–0x58d8dbc** maps each
-`/$bunfs/root/chunk-<hash>.js` name to a u32.
+A **2133-row chunk manifest table** at **0x588c868–0x58d8dbc** maps each
+`/$bunfs/root/chunk-<hash>.js` name to a u32 (1965 rows are kind-`0x1e` chunk entries; 168 rows
+carry other kind tags — see correction note above).
 
 Byte-level evidence:
 
@@ -24,14 +29,14 @@ Byte-level evidence:
   JS bundle (`import"/$bunfs/root/chunk-*.js"` cross-chunk imports throughout). The blob tail
   (last KBs) is an import manifest:
   `import"/$bunfs/root/chunk-d5as4466.js";import"/$bunfs/root/chunk-arb5mqam.js";…`
-- Manifest entry wire format (decoded, byte-verified for all 1965 entries):
+- Manifest entry wire format (decoded, byte-verified for all 2133 rows):
   `[name bytes][0x00][0x00][kind:u8][0x00][0x00][0x80][value:u32 LE]`, with `kind=0x1e` for chunk
   entries (name length 30, e.g. `/$bunfs/root/chunk-w5read84.js`). The same wire format is reused
   for node-builtin shims (`child_process`→`spawn`, `fs/promises`→`access`/`stat`/`open`) and an
   FFI type table (`Cwchar_t`, `Cwstring`, `DenseArray`, ~0x5ae36d4); `kind` is a type tag (values
   0x02–0x2d observed), not a length.
 - Carved, byte-exact, in `~/workspace/rea-claude/deep-dive/carved/`:
-  `claude-bundle-full.js` (41 MB, the full blob), `chunk-manifest.json` (1965 entries: name,
+  `claude-bundle-full.js` (41 MB, the full blob), `chunk-manifest.json` (2133 rows: name,
   table offset, u32 value), `01-settings.js` (1.5 MB, 0xcc80000–0xce00000),
   `02-auth-oauth.js` (2.5 MB, 0xbf00000–0xc180000), `03-mcp-protocol.js` (3.5 MB, 0xdb80000–0xdf00000).
   Each slice carries a header comment with source offsets + decode method. Slices are minified
@@ -53,7 +58,7 @@ Byte-level evidence:
 - The single `chunk-d5as4466` occurrence at **0x588df71** in context
   `...chunk-w5read84.js\x00\x00\x1e\x00\x00\x80\xcb\xde>\x00/...` cracks the manifest entry
   pattern; regex `rb'/\$bunfs/root/chunk-([a-z0-9]+)\.js\x00\x00\x1e\x00\x00\x80(....)'` parses
-  all 1965 entries.
+  all 2133 rows.
 - Non-text cluster analysis: 45,933 non-text bytes in the blob; all ≥4-byte clusters live in the
   header → the "length-prefixed string table" hypothesis is **dead**; there are no length-prefix
   separators between modules.
@@ -82,7 +87,7 @@ burning any model quota. It is the foundation every other finding in this set st
 - Subsystem slices: read `01-settings.js` (0xcc80000–0xce00000), `02-auth-oauth.js`
   (0xbf00000–0xc180000), `03-mcp-protocol.js` (0xdb80000–0xdf00000) instead of the full 41 MB
   when the subsystem is known — see `~/workspace/rea-claude/deep-dive/carved/`.
-- Manifest: `chunk-manifest.json` (1965 entries with table offset + u32 value) is the index for
+- Manifest: `chunk-manifest.json` (2133 rows with table offset + u32 value) is the index for
   any chunk-name→location lookup. Re-carve by parsing the table, not by re-scanning the binary.
 - Caveats for reuse: offsets are version-pinned to 2.1.287 — re-run the text-fraction scan on a
   new build rather than hard-coding them; carved slices are excerpts, not runnable JS.
