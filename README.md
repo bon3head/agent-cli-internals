@@ -60,6 +60,34 @@ flowchart LR
 
 **8. Where your data goes, documented.** Antigravity: three telemetry pipelines, no program-level off switch. Codex: opt-in tracing vs always-on analytics (which has an off switch). Claude Code: a fully predictable permissions engine.
 
+## Receipts: cracked open, on the record
+
+We didn't just describe the internals — we pulled them out of the shipping binaries and built on them. This is a real terminal session against the installed `claude` binary:
+
+![receipt: internal-only model family extracted from the binary](receipt-mythos-nulls.png)
+
+Verbatim bytes from the binaries (offsets in the finding docs):
+
+```jsonc
+// claude 2.1.287 — the internal-only family. every third-party slot: null.
+"claude-mythos-5-1": { "first_party": "claude-mythos-5-1",
+  "bedrock": null, "vertex": null, "foundry": null,
+  "anthropic_aws": null, "anthropic_google_cloud": null,
+  "mantle": null, "gateway": null }
+```
+
+```jsonc
+// codex — the binary's own schema describes who approves tool calls:
+"ApprovalsReviewer": ["user", "auto_review", "guardian_subagent"]
+// "auto_review uses a carefully prompted subagent to gather relevant context
+//  and apply a risk-based decision framework... the legacy value
+//  guardian_subagent is accepted for compatibility."
+```
+
+Actual carved sources in [`carved/`](carved/): the Mythos registry entries as JSON, a slice of the real minified shipped JS around the model-alias table (`best:"fable"`), and the opening of Antigravity's embedded 10.7KB safety pre-filter prompt — the secret rubric that screens every agent action.
+
+And the advantage: [`pocs/`](pocs/) turns the cracks into tools — a permission-rule **simulator** that predicts allow/deny before you run anything, a settings **validator** against the recovered 199-key schema, a surface **enumerator** for agy's 341-method control plane, and a model-catalog **differ** that flags new models, deprecations, and kill-switch flips on every future build.
+
 ## Findings index, ranked by bigness
 
 | # | Finding | Tool |
