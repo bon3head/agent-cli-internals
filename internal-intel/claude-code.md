@@ -2,13 +2,17 @@
 
 **CONFIRMED** = byte-level evidence quoted in the deep-dive. **INFERENCE** = reasoned from evidence, gap named. **KILL** = chased and dead.
 
-## Unreleased model families (CONFIRMED)
+## Model families: public vs internal-only (CONFIRMED)
+
+> **Landscape correction (2026-10-18):** Fable 5/5.1 were framed here as unreleased — wrong.
+> Fable 5 launched publicly 2026-06-09, Fable 5.1 on 2026-09-01 ($10/$50 per MTok).
+> **Mythos 5/5.1 is the genuinely non-public family** (Project Glasswing restricted).
 
 Two embedded catalogs: a signed compiled seed (v1468, issued 2026-10-01, key `claude-code-release-signing-key`, offset 215173117; surfaces cc/ccd/ccr/chat/cowork) and a richer 21-model internal registry (offset 199521935).
 
-- **Fable 5 / 5.1** — flagship: `best:"fable"` in aliases, Jan/Jun 2026 cutoffs, `$10/$50` tier, capability flags (`fable_5_mitigations`, `adaptive_thinking`, `fast_mode`), `advisor_rank` 9 (top), effort nudges via `radiant_island`/`steady_plum`.
+- **Fable 5 / 5.1** — PUBLIC flagship: `best:"fable"` in aliases, Jan/Jun 2026 cutoffs, `$10/$50` tier, capability flags (`fable_5_mitigations`, `adaptive_thinking`, `fast_mode`), `advisor_rank` 9 (top), effort nudges via `radiant_island`/`steady_plum`.
 - **Mythos 5 / 5.1** — internal-only: every third-party provider_id null, first_party only, no alias, no fallback.
-- Also unreleased in this build: opus-4-6/4-7/4-8, sonnet-4-6, opus-5/5-5, sonnet-5/5-5. `opus-4-5-20251101` sits in `section:"deprecated"`.
+- Also in this build (public status of these versions UNVERIFIED, not claimed as unreleased): opus-4-6/4-7/4-8, sonnet-4-6, opus-5/5-5, sonnet-5/5-5. `opus-4-5-20251101` sits in `section:"deprecated"`.
 - Internal pricing codes (`tier_10_50_cache_read_0_25`…), per-effort cost multipliers (`effort_cost_index`: sonnet-5 max = 5.59x).
 - **Per-provider alias skew**: foundry's "opus" = 4-6, gateway's = 4-7 — third-party lags first-party ~1 minor version.
 - Served catalog: `downloads.claude.ai/model-catalog/v1/catalog.json` + SPKI-verified `.raw-sig.json`. The in-binary compiled seed **expired 2026-10-08** — the live served catalog is what matters.
@@ -21,9 +25,9 @@ Two embedded catalogs: a signed compiled seed (v1468, issued 2026-10-01, key `cl
 
 128 `tengu_<adjective>_<noun>` gates, server-driven via `featureGateLookup` with compiled local defaults. Grounded examples: `pewter_owl_model` (remote model-routing override; env `CLAUDE_CODE_PEWTER_OWL`), `curious_tower_stateless_models` (stateless-model allowlist), `saffron_*` (billing), `smooth_harbor` (extra-usage billing), `kairos_cron` (scheduling; killable via `CLAUDE_CODE_DISABLE_CRON`), `harbor_kite_cloud` (cloud sessions; needs `CLAUDE_CODE_HARBOR_KITE_CLOUD`). Family codenames: `kairos`=scheduling, `harbor`=cloud+billing, `fleetview`=background-agent roster, `violin`=cloud remote-tools, `grove`=policy/privacy UI, `cobalt`=artifacts (HIPAA/ZDR-gated), `lantern`=session wrap-up.
 
-## Unreleased-product URLs and staging (CONFIRMED)
+## Product URLs and staging (CONFIRMED)
 
-`anthropic.com/news/claude-fable-5-mythos-5` · `anthropic.com/claude/fable`. Staging: `api-staging.anthropic.com`, `claude-ai.staging.ant.dev`, `claude-staging.fedstart.com`. 63 `code.claude.com/docs` paths inventoried (incl. `/docs/en/fast-mode`, `/docs/en/auto-mode-classifier-billing`).
+`anthropic.com/news/claude-fable-5-mythos-5` · `anthropic.com/claude/fable` (unreleased at build time; now live public announcements). Staging: `api-staging.anthropic.com`, `claude-ai.staging.ant.dev`, `claude-staging.fedstart.com`. 63 `code.claude.com/docs` paths inventoried (incl. `/docs/en/fast-mode`, `/docs/en/auto-mode-classifier-billing`).
 
 ## KILLS
 

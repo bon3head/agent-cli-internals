@@ -37,4 +37,4 @@ Astra · Terra · Luna · Sol are a celestial-body family naming scheme, not one
 ## INFERENCE (gaps named)
 
 - Agent identity timeline (strings confirm the feature; ship date unverified).
-- `gpt-6-astra` servability via this CLI (listed in catalog; the API may not serve it). Note: the astra slug is a **0.155.1-era addition** — absent from 0.149.0 binary strings and its live catalog; the REA schema/flag baselines were captured against 0.149.0.
+- `gpt-6-astra` is a PUBLIC model (launched 2026-09-03, API id `gpt-6-astra`, $10/$50 per MTok) — listed in the 0.155.1 catalog; the open question is CLI servability per plan tier, not existence. Note: the astra slug is a **0.155.1-era addition** — absent from 0.149.0 binary strings and its live catalog; the REA schema/flag baselines were captured against 0.149.0.

@@ -17,8 +17,8 @@ The program ships a command (`codex app-server generate-json-schema`) that print
 **3. Claude Code's entire brain was recovered as readable code.**
 The program is packed as one big blob, but the team found the exact spot where the 41 megabytes of its internal JavaScript live and pulled it out byte-for-byte. Everything the app does — permissions, settings, cloud features — is now searchable text instead of a sealed black box.
 
-**4. You can see models that haven't been announced yet.**
-Claude Code carries an internal model catalog listing names like Fable 5 and Mythos 5 — new model families the public hasn't seen. Codex's files name unreleased models like GPT-6 Astra. This is what the next round of AI releases looks like, straight from the shipping software.
+**4. You can tell which models are public and which are internal-only.**
+Claude Code's internal model catalog lists Fable 5/5.1 (public since June/September 2026) alongside Mythos 5/5.1 — the genuinely internal-only family, restricted to vetted partners, with every third-party provider ID null. Codex's files name GPT-6 Astra (public since September 3, 2026). The binary itself draws the line between public and internal.
 
 **5. The "safety check" on every Antigravity action was fully decoded.**
 Before every single thing Antigravity's agent does, a three-stage safety pipeline runs — and the configuration lives on the vendor's servers, meaning the rules can change without you ever updating the program. Researchers now know exactly what gets checked and where the override levers are.
@@ -37,7 +37,7 @@ Antigravity reports what it sends home through three separate channels (includin
 1. [Antigravity's local control plane: 341 methods, drivable with curl](findings/antigravity/01-local-control-plane.md)
 2. [Codex's self-documenting protocol: 95 methods from the binary's own schema generator](findings/codex/01-app-server-protocol.md)
 3. [Claude Code's entire app carved out as 41MB of searchable JavaScript](findings/claude-code/01-bundle-surgery.md)
-4. [Unreleased model families: Fable 5/5.1 (flagship) and Mythos 5/5.1 (internal-only)](findings/claude-code/10-fable-mythos.md)
+4. [Model families: Fable 5/5.1 (public) and Mythos 5/5.1 (internal-only)](findings/claude-code/10-fable-mythos.md)
 5. [Antigravity's per-step safety screen: 3 monitors, server-overridable](findings/antigravity/02-safety-screen.md)
 6. [Claude Code's gateway is a full self-hostable HTTP server, not just auth](findings/claude-code/06-gateway-server.md)
 7. [Codex's code-mode host: a Rust binary embedding V8 that runs raw JS cells](findings/codex/04-code-mode-host.md)
@@ -65,6 +65,6 @@ Antigravity reports what it sends home through three separate channels (includin
 
 **Re-verification:** 38 of 39 trials CONFIRMED live against the installed binaries; 1 PARTIAL (`claude mcp list` hangs doing live health checks — functions, but unbounded without a timeout). All PoCs exit 0. Per-byte evidence (offsets, quoted literals) is given in each finding so claims can be re-derived.
 
-**What was NOT verified:** wire behavior of any protocol (no network allowed — per-method auth, framing, concurrency are from schemas/strings, not observation); a live Antigravity language server (nothing was listening — probing it needs a running server with a valid CSRF token); whether `AGY_CLI_DISABLE_SAFETY_FILTERING` is honored; servability of unreleased models (Fable 5, Mythos 5, GPT-6 Astra) via any real API; per-key config defaults (~90/101 keys each); numeric telemetry tunables. Gaps are labeled in-line, never smoothed over.
+**What was NOT verified:** wire behavior of any protocol (no network allowed — per-method auth, framing, concurrency are from schemas/strings, not observation); a live Antigravity language server (nothing was listening — probing it needs a running server with a valid CSRF token); whether `AGY_CLI_DISABLE_SAFETY_FILTERING` is honored; servability of Mythos 5 via any real API (internal-only; Fable 5/5.1 and GPT-6 Astra are public models — the open question there is plan-gated CLI access, not existence); per-key config defaults (~90/101 keys each); numeric telemetry tunables. Gaps are labeled in-line, never smoothed over.
 
 **Limits of the record:** Codex scratchpads for lanes A, C, D, E were reconstructed post-hoc from the lane deliverables (honest reconstruction headers inside). Where a finding was refuted (Agy's `--disable_telemetry` CLI-flag claim), the refutation is kept in the repo as a kill — a documented kill is a finding.

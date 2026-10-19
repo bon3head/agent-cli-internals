@@ -2,6 +2,12 @@
 
 Chronological breakthroughs from the three deep-dive swarms, distilled from the lane scratchpads and `~/workspace/rea-reports/prose-expansion.md`. Shortform by design — each entry carries the exact command, offset, or pattern that cracked the surface, so any finding can be re-derived.
 
+> **Landscape correction (2026-10-18 ~11:10 PM ET):** entries below that frame Fable 5/5.1 or
+> GPT-6 Astra as unreleased are superseded. Fable 5 launched publicly 2026-06-09, Fable 5.1
+> on 2026-09-01, GPT-6 Astra on 2026-09-03. **Mythos 5/5.1 is the genuinely non-public family**
+> (Project Glasswing restricted). The string-level findings stand; only the public-vs-internal
+> framing was wrong. See `findings/claude-code/10-fable-mythos.md`.
+
 ## 2026-10-18 (all times ET)
 
 ### 21:55 — agy, all lanes

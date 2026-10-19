@@ -1,4 +1,9 @@
-# 10 — Unreleased model families: Fable 5/5.1 and Mythos 5/5.1 (C5)
+# 10 — Model families in the binary: Fable 5/5.1 (public) and Mythos 5/5.1 (internal-only) (C5)
+
+> **Landscape correction (2026-10-18):** an earlier revision of this doc framed Fable 5/5.1 as
+> unreleased. That was wrong. **Fable 5 launched publicly June 9, 2026; Fable 5.1 launched
+> publicly September 1, 2026** (both $10/$50 per MTok). The genuinely non-public family is
+> **Mythos 5/5.1** — see below.
 
 **Target pinned:** claude CLI 2.1.287 · Bun-compiled ELF 64-bit x86-64, NOT stripped · 244,317,368 bytes ·
 `/home/hatch/.local/share/claude/versions/2.1.287`
@@ -23,17 +28,23 @@ Two embedded model catalogs:
   version:1468,...`. Surfaces: `cc`, `ccd`, `ccr`, `chat`, `cowork`.
 - **Richer internal registry** — 21 models — at offset **199521935**.
 
-**Fable 5 / 5.1** (cutoffs Jan 2026 / Jun 2026, pricing `tier_10_50` / `tier_10_50_cache_read_0_25`,
-`best:"fable"` in the alias table — positioned as the flagship tier **above Opus**).
-Fable is third-party-bound: full provider_ids, `VERTEX_REGION_CLAUDE_FABLE_5[_1]` env vars,
-`fallback_3p: claude-opus-5-5`.
+**Fable 5 / 5.1** — PUBLIC models (Fable 5 launched 2026-06-09; Fable 5.1 launched 2026-09-01;
+$10/$50 per MTok). Cutoffs Jan 2026 / Jun 2026, pricing `tier_10_50` /
+`tier_10_50_cache_read_0_25`, `best:"fable"` in the alias table — positioned as the flagship
+tier **above Opus**. Fable is third-party-bound: full provider_ids,
+`VERTEX_REGION_CLAUDE_FABLE_5[_1]` env vars, `fallback_3p: claude-opus-5-5`.
 
-**Mythos 5 / 5.1** — internal-only: every third-party provider_id is null, first_party only,
-no alias, no fallback, no Mythos entry in `latest_per_family` addressability — the `mythos`
-alias does not exist at all. Both families carry `fable_5_mitigations` capability flags
+**Mythos 5 / 5.1** — the genuinely INTERNAL-ONLY family: every third-party provider_id is
+null, first_party only, no alias, no fallback, no Mythos entry in `latest_per_family`
+addressability — the `mythos` alias does not exist at all. Public reporting (June–Sept 2026)
+says Mythos shares Fable's underlying weights with safeguards lifted and is restricted to
+vetted cyberdefenders/infrastructure providers via Project Glasswing. The binary confirms
+the posture independently: null 3p provider_ids are the footprint of a model the public is
+not meant to address. Both families carry `fable_5_mitigations` capability flags
 (internal safety mitigations bundle).
 
-Also unreleased in the registry: opus-4-6/4-7/4-8, sonnet-4-6, opus-5/5-5, sonnet-5/5-5;
+The registry also lists opus-4-6/4-7/4-8, sonnet-4-6, opus-5/5-5, sonnet-5/5-5 — public
+status of these versions is UNVERIFIED from this binary alone (not claimed as unreleased);
 `claude-opus-4-5-20251101` sits in `section:"deprecated"`.
 
 Aliases (@199537503): `opus.default = claude-opus-5-5`, `sonnet.default = claude-sonnet-5-5`,
@@ -62,9 +73,9 @@ replaces the compiled picker". Since the compiled seed is **expired 2026-10-08**
 served catalog is what matters. Selector defaults: cc/ccd/ccr default = `claude-opus-5`
 (NOT 5-5); chat/cowork default = `claude-sonnet-4-6`.
 
-Unreleased-product URLs embedded in the binary: `anthropic.com/news/claude-fable-5-mythos-5`,
-`anthropic.com/claude/fable`. Staging hosts: `api-staging.anthropic.com`,
-`claude-ai.staging.ant.dev`, `claude-staging.fedstart.com`.
+Unreleased-at-build-time product URLs embedded in the binary (now live public announcements):
+`anthropic.com/news/claude-fable-5-mythos-5`, `anthropic.com/claude/fable`. Staging hosts:
+`api-staging.anthropic.com`, `claude-ai.staging.ant.dev`, `claude-staging.fedstart.com`.
 
 PoC: `pocs/extract_model_catalog.py` → seed JSON, 21-model registry JSON, aliases JSON,
 markdown table. Reusable for diffing future builds (watch `version`, `issued_at`, new ids).
@@ -84,12 +95,15 @@ markdown table. Reusable for diffing future builds (watch `version`, `issued_at`
 
 ## 3. WHAT IT UNLOCKS
 
-In plain terms: the binary ships a roadmap. There are two model families beyond anything
-announced — Fable, positioned as the flagship *above* Opus, and Mythos, an internal-only
-sibling — plus unreleased Opus/Sonnet versions, version gates that decide which builds can
-use them, and the internal cost levers (effort multipliers, pricing codes, advisor rank)
-that determine what you pay for what. Tooling can stop chasing aliases and pin models
-deliberately — including not pinning models that this build is too old for.
+In plain terms: the binary's model catalog mixes public and internal-only families, and the
+binary itself tells you which is which. Fable 5 and 5.1 are public models (launched June and
+September 2026 — the catalog entries match Anthropic's public price list). Mythos 5/5.1 is
+the genuinely internal one: every third-party provider ID is null, it has no public alias,
+and public reporting says it only goes to vetted security partners. The real leak isn't a
+secret flagship — it's the internal-only sibling's footprint: its capability flags, safety
+mitigations bundle, and the version gates around it, sitting in a shipping binary. Tooling
+can stop chasing aliases and pin models deliberately — including not pinning models that
+this build is too old for.
 
 ## 4. HOW A DEVELOPER BUILDS ON IT
 
