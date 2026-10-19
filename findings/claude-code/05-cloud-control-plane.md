@@ -91,7 +91,7 @@ one and one that mysteriously ignores half your configuration.
   (model/effort/system-prompt), warn on `ignore/lost` flags (`--add-dir`, `--plugin-dir`,
   `--watch-artifact`), and fail fast on `refuse` flags (`--bare`,
   `--dangerously-skip-permissions`) instead of hitting the hard error.
-  ([pocs/cloud-map/cloud-map.md](sandbox://workspace/rea-claude/deep-dive/pocs/cloud-map/cloud-map.md))
+  ([pocs/cloud-map/cloud-map.md](../../evidence/claude-code/cloud-map.md))
 - **Session lifecycle tooling:** `claude --cloud <session_id>` (attach),
   `claude --teleport <session_id>` (pull local with full history), session IDs match
   `^(?:session|cse)_[A-Za-z0-9_-]+$`: validate IDs client-side before invoking.

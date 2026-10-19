@@ -94,7 +94,7 @@ out) of experiments deliberately instead of being silently bucketed.
 - **Experiment watchlist:** track `tengu-events.txt` / `gate-checks.txt` across builds:
   new codename gates are the earliest signal of an in-flight feature; gates that lose their
   checks between builds are shipped or killed.
-  ([tengu-events.txt](sandbox://workspace/rea-claude/deep-dive/tengu-events.txt))
+  ([tengu-events.txt](../../evidence/claude-code/tengu-events.txt))
 - **Billing forensics:** the `saffron_*` (pricing) and `harbor` (cloud/billing) families +
   `effort_cost_index` explain usage bills better than any public doc; pair with
   `modelPricing` in settings (org-contracted rates) for fleet cost control.

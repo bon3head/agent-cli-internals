@@ -10,7 +10,7 @@ Three CLIs were taken apart byte by byte: Google's `agy` (Antigravity), Anthropi
 ## The 30-second version
 
 - **Antigravity exposes 889 RPC methods across 30 services**, including a 348-method local control server (`localhost:5387`) you can drive with curl. The binary prints the recipe.
-- **Codex documents its own protocol.** One built-in command prints all 102 API methods as JSON Schema.
+- **Codex documents its own protocol.** One built-in command prints all 102 client-to-server API methods as JSON Schema.
 - **Claude Code's 41MB app was carved out as readable JavaScript.** Permissions, settings, and cloud features are all searchable text now.
 - **The binaries draw the public-vs-internal line themselves.** Mythos 5/5.1 is the internal-only model family; Fable 5/5.1 and GPT-6 Astra are public.
 
@@ -47,7 +47,7 @@ flowchart LR
 
 **1. Drive the Antigravity agent with plain web requests.** A local server exposes 348 control functions: start the agent, send messages, install plugins, open terminals. The program's own help text contains the exact curl recipe, so no SDK is needed. The full binary exposes 889 RPC methods across 30 services (finding #1).
 
-**2. Codex prints its own instruction manual.** One built-in command emits all 102 API methods as JSON Schema. Programmers stop guessing because the map comes from the tool itself.
+**2. Codex prints its own instruction manual.** One built-in command emits all 102 client-to-server API methods as JSON Schema. Programmers stop guessing because the map comes from the tool itself.
 
 **3. Claude Code's internals are now searchable text.** 41MB of internal JavaScript was pulled byte-exact from the binary. For permissions, settings, and cloud features, you can grep instead of guess.
 
@@ -99,7 +99,7 @@ The carved sources are in [`carved/`](carved/): the Mythos registry entries as J
 | # | Finding | Tool |
 |---|---------|------|
 | 1 | [The 889-method RPC service map: 30 services from codegen symbols](findings/antigravity/13-rpc-service-map.md) | agy |
-| 2 | [Self-documenting protocol: 102 methods from the binary's own schema generator](findings/codex/01-app-server-protocol.md) | codex |
+| 2 | [Self-documenting protocol: 102 client-to-server methods from the binary's own schema generator](findings/codex/01-app-server-protocol.md) | codex |
 | 3 | [Entire app carved out as 41MB of searchable JavaScript](findings/claude-code/01-bundle-surgery.md) | claude |
 | 4 | [Model families: Fable 5/5.1 (public) and Mythos 5/5.1 (internal-only)](findings/claude-code/10-fable-mythos.md) | claude |
 | 5 | [Local control plane: 348 methods, drivable with curl](findings/antigravity/01-local-control-plane.md) | agy |
@@ -141,7 +141,7 @@ Method, version pins, re-verification, and what was not verified.
 
 - `agy` v1.3.1 (sha256 `085f43e0…455ef`)
 - `claude` 2.1.287 (244,317,368 bytes, Bun)
-- `codex` 0.155.1 + `codex-code-mode-host` 69MB. Note: the app-server schema and feature-flag baselines were captured against 0.149.0; the trial found `gpt-6-astra` is a 0.155.1-era addition.
+- `codex` 0.155.1 + `codex-code-mode-host` 69MB. Note: the app-server schema baseline was first captured against 0.149.0 and refreshed to a fresh 0.155.1 emission on the reinforcement pass (finding 13 documents the delta); `gpt-6-astra` is a 0.155.1-era addition.
 - Trials re-ran 2026-10-18/19.
 
 **Re-verification.** 38 of 39 trials CONFIRMED live against the installed binaries. 1 is PARTIAL: `claude mcp list` hangs doing live health checks (it functions, but is unbounded without a timeout). All PoCs exit 0. Each finding gives per-byte evidence (offsets, quoted literals) so claims can be re-derived.

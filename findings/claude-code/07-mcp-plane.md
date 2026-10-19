@@ -85,7 +85,7 @@ binary.
 - **Endpoint inventory:** `pocs/mcp-plane-inventory.json` + `.md`: the complete first-party
   (blocked OAuth hosts, proxy, slack) and third-party (asana, figma, linear, sentry, box)
   endpoint list, regenerated from any build.
-  ([mcp-plane-inventory.md](sandbox://workspace/rea-claude/deep-dive/pocs/mcp-plane-inventory.md))
+  ([mcp-plane-inventory.md](../../evidence/claude-code/mcp-plane-inventory.md))
 - **Permission recipes for MCP:** allow needs the literal server prefix
   (`mcp__github__*`); deny/ask accept wildcards anywhere (`mcp__*`);
   `--allowedTools "mcp__github_inline_comment__create_inline_comment"` works verbatim.

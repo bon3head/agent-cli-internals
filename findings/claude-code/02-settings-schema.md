@@ -87,7 +87,7 @@ settings silently ignored in `-p` mode) is now diagnosable offline.
   `blockReadsOutsideWorkingDirectories` in *any* source wins (OR-semantics).
 - **The 183-key reference:** `ia-schema-parsed.txt` is the complete key list with types +
   describes: generate IDE autocompletion / docs from it rather than re-extracting.
-  ([ia-schema-parsed.txt](sandbox://workspace/rea-claude/deep-dive/ia-schema-parsed.txt))
+  ([ia-schema-parsed.txt](../../evidence/claude-code/ia-schema-parsed.txt))
 - **Managed lockdown recipe:** ship `/etc/claude-code/managed-settings.json` with
   `disableBypassPermissionsMode: "disable"`, `allowManagedPermissionRulesOnly: true`,
   `allowManagedHooksOnly: true`: fleet admins can lock an entire estate from three lines.

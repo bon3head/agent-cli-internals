@@ -120,7 +120,7 @@ this build is too old for.
 - **Watch feed:** re-run `pocs/extract_model_catalog.py` against new builds and diff
   `version`, `issued_at`, model ids, and `disabled` flags: it is the earliest signal of a
   model launch, deprecation, or server-side kill-switch flip.
-  ([pocs/outputs/model-table.md](sandbox://workspace/rea-claude/deep-dive/pocs/outputs/model-table.md))
+  ([pocs/outputs/model-table.md](../../evidence/claude-code/model-table.md))
 - **Boundaries:** Mythos is internal-only (first_party ids only, no alias, not addressable);
   do not build tooling that assumes Mythos servability. `ccd`/`ccr` surfaces appear in the
   seed but their roles are ungrounded: treat as unknown.
