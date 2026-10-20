@@ -97,8 +97,9 @@ system (`duplicate plugin ` @218611485, ×12), skills, rollout migration
 (`failed to restore moved rollouts` @217354445), thread store
 (`failed to park thread` @219009500, ×9), auth/token refresh, MCP event
 stream, enterprise/residency, exec-server, managed daemon/self-updater
-(`failed to prune stale managed ` @217306428, ×3; `updater failed to resolve
-current updater executable` @219190914), remote control/pairing, voice/realtime
+(`failed to prune stale managed ` @217306428, ×3; updater error literals
+@219190669 region), remote control/pairing, voice/realtime
+> **Correction (2026-10-20, gated rerun):** the earlier quote `updater failed to resolve current updater executable` was a packed-run misread. `updater failed` has **zero hits** in 0.155.1. The actual literals sit packed together: `/bin/sh`, `-s`, `CODEX_RELEASE`, `failed to invoke standalone Codex updater`, `failed to resolve current updater executable`. The same class of counting error as the 2026-10-19 corrections; the gated rerun found several of this doc's counts low by 1 (example: `failed to park thread` is ×10, not ×9).
 (`voice startup failed` @222638116), approvals (`denied action after seeing
 the concrete risk` @220885515, ×4), network proxy, code-mode cells
 (`unknown cell ` @217187403), multi-agent, feedback, connector runtime cache,

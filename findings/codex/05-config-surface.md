@@ -29,7 +29,8 @@ before relying on a specific key.
   - `sandbox`, `approval_policy`, `approvals_reviewer` (`user | auto_review | guardian_subagent`: CONFIRMED schema enum; `guardian_subagent` is the legacy name per the schema description, `auto_review` is current: "a carefully prompted subagent to gather relevant context and apply a risk-based decision framework before approving or denying the request")
   - `[model_providers.<name>]`: `base_url`, `env_key`, `wire_api`, `env_http_headers`, `query_params`, retry/timeout knobs, `requires_openai_auth`, `supports_websockets`, `supports_standalone_web_search`, `aws`… (`ModelProviderInfo` 18 elements, 12/18 recovered)
   - `[mcp_servers.*]`: per-server `RawMcpServerConfig` (28 fields; see Finding 09)
-  - `[shell_environment_policy]` 7/7: `inherit`, `ignore_default_excludes`, `set`, `include_only`, `filters`, `max_depth`, `experimental_use_profile`
+  - `[shell_environment_policy]` 7/7: `inherit`, `ignore_default_excludes`, `exclude`, `set`, `include_only`, `filters`, `experimental_use_profile`
+    > **Correction (2026-10-20, gated rerun):** this list previously included `max_depth` and dropped `exclude`. The FIELDS walk @0xfbf5908 gives the 7 fields above; `max_depth` occurs nowhere in the packing. The 7th field is `experimental_use_profile`, not `exclude` (field #3).
   - `[browser_use]` 3/3, `[computer_use]` 3/3, `[memories]` 13/14, `[network]` 10/13, `[otel]` 2/8 (`environment`, `log_user_prompt`; see Finding 08)
   - Full `[tui]` keymaps (`tui.chat`, `tui.pager`, `tui.agents`, `tui.editor`, `tui.global`, `tui.composer`, `tui.vim_normal`, `tui.vim_operator`, `tui.vim_search`, `tui.vim_text_object`, `tui.approval`)
   - `[analytics]` single field: `enabled` → the telemetry kill switch (Finding 08)

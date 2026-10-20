@@ -2,10 +2,10 @@
 
 **Your AI coding tools look like chat boxes. Underneath, they're platforms with hidden control panels. This repo documents the panels.**
 
-Three CLIs were taken apart byte by byte: Google's `agy` (Antigravity), Anthropic's `claude` (Claude Code), and OpenAI's `codex`. No agent was run and no prompt was sent to a model. Everything here comes from the text baked into the programs, the settings they ship with, and the self-describing specs some of them carry.
+Four CLIs were taken apart byte by byte: Google's `agy` (Antigravity), Anthropic's `claude` (Claude Code), OpenAI's `codex`, and Meta's `muse` (Muse Code, prompts pass only). No agent was run and no prompt was sent to a model. Everything here comes from the text baked into the programs, the settings they ship with, and the self-describing specs some of them carry.
 
-**Versions:** `agy` v1.3.1 · `claude` 2.1.287 · `codex` 0.155.1
-**Also here:** [methodology](methodology/README.md) · [eureka log](eureka-log.md) · [PoCs](pocs/) · [diagrams](diagrams/) · [honesty box](#honesty-box) (caveats and what was not verified)
+**Versions:** `agy` v1.3.1 · `claude` 2.1.287 · `codex` 0.155.1 · `muse` 1.4.7
+**Also here:** [methodology](methodology/README.md) · [eureka log](eureka-log.md) · [PoCs](pocs/) · [diagrams](diagrams/) · [full prompt texts](prompts/) · [honesty box](#honesty-box) (caveats and what was not verified)
 
 ## The 30-second version
 
@@ -13,6 +13,7 @@ Three CLIs were taken apart byte by byte: Google's `agy` (Antigravity), Anthropi
 - **Codex documents its own protocol.** One built-in command prints all 102 client-to-server API methods as JSON Schema.
 - **Claude Code's 41MB app was carved out as readable JavaScript.** Permissions, settings, and cloud features are all searchable text now.
 - **The binaries draw the public-vs-internal line themselves.** Mythos 5/5.1 is the internal-only model family; Fable 5/5.1 and GPT-6 Astra are public.
+- **Every system prompt ships in the binary.** Full prompt corpora were extracted for all four tools (135 items): personas, safety judges, subagent libraries. One exception: Codex's Security Policy text is a runtime slot, not embedded.
 
 ## The three control planes at a glance
 
@@ -59,7 +60,9 @@ flowchart LR
 
 **7. An AI that approves the AI's tool calls.** Codex names an `auto_review` seat (legacy name: `guardian_subagent`), a prompted subagent that approves or denies tool calls in your place. The binary's own schema docs describe it as "a carefully prompted subagent to gather relevant context and apply a risk-based decision framework." The autonomy config ships today.
 
-**8. Where your data goes, documented.** Antigravity has three telemetry pipelines and no program-level off switch. Codex has opt-in tracing and always-on analytics (the analytics have an off switch). Claude Code has a fully predictable permissions engine.
+**8. Where your data goes, documented.** Antigravity has three telemetry pipelines and no program-level off switch. Codex analytics is off by default in the CLI (it only defaults on inside first-party hosts like the VS Code extension), while its OTel tracing is opt-in. Codex also phones home to a Sentry crash endpoint, a per-turn cost endpoint, and embeds `repo_hash` plus `line_fingerprints` in the analytics payload. Claude Code has a fully predictable permissions engine.
+
+**9. The prompts the agents run on.** 135 prompts recovered verbatim: per-model system prompts and the full Guardian safety judge for Codex, the complete safety-judge texts and a hidden Teamwork swarm family for Antigravity, Claude Code's assembled prompt fragments (there is no single stored system prompt) plus its full security-review protocol, and Muse Code's main prompt in two editions.
 
 ## Receipts: cracked open, on the record
 
@@ -100,28 +103,33 @@ The carved sources are in [`carved/`](carved/): the Mythos registry entries as J
 |---|---------|------|
 | 1 | [The 889-method RPC service map: 30 services from codegen symbols](findings/antigravity/13-rpc-service-map.md) | agy |
 | 2 | [Self-documenting protocol: 102 client-to-server methods from the binary's own schema generator](findings/codex/01-app-server-protocol.md) | codex |
-| 3 | [Entire app carved out as 41MB of searchable JavaScript](findings/claude-code/01-bundle-surgery.md) | claude |
-| 4 | [Model families: Fable 5/5.1 (public) and Mythos 5/5.1 (internal-only)](findings/claude-code/10-fable-mythos.md) | claude |
-| 5 | [Local control plane: 348 methods, drivable with curl](findings/antigravity/01-local-control-plane.md) | agy |
-| 6 | [GrowthBook is the experiment SDK: every `tengu_*` gate is a GrowthBook evaluation](findings/claude-code/13-growthbook-experiment-sdk.md) | claude |
-| 7 | [The autonomy roadmap is a config surface: six experimental structs, fully field-recovered](findings/codex/11-roadmap-struct-fields.md) | codex |
-| 8 | [Gateway is a full self-hostable HTTP server, not just auth](findings/claude-code/06-gateway-server.md) | claude |
-| 9 | [Per-step safety screen: 3 monitors, server-overridable](findings/antigravity/02-safety-screen.md) | agy |
-| 10 | [Code-mode host: a Rust binary embedding V8 that runs raw JS cells](findings/codex/04-code-mode-host.md) | codex |
-| 11 | [Permission engine decoded: deny > ask > allow, simulated exactly](findings/claude-code/03-permission-engine.md) | claude |
-| 12 | [Update signing (RSA-4096 SPKI), Datadog sink, event logging](findings/claude-code/16-update-signing-datadog.md) | claude |
-| 13 | [Sanctioned bring-your-own-model path (`AGY_LLM_GATEWAY_*`)](findings/antigravity/12-byo-model-path.md) | agy |
-| 14 | [Cloud Run auto-updater: the real update host](findings/antigravity/15-cloud-run-updater.md) | agy |
-| 15 | [Rate limits are readable AND redeemable (idempotency-keyed reset credits)](findings/codex/07-rate-limits.md) | codex |
-| 16 | [The CLI is its own MCP server; first-party Gmail/GCal hosts](findings/claude-code/07-mcp-plane.md) | claude |
-| 17 | [Unleash: the second flag system](findings/antigravity/14-unleash-flag-system.md) | agy |
-| 18 | [Gateway full route table (18 paths)](findings/claude-code/15-gateway-route-table.md) | claude |
-| 19 | [The code-mode sandbox is exactly 14 injected names (and no more)](findings/codex/12-cell-globals.md) | codex |
-| 20 | [Hidden commands + unregistered `claude daemon`](findings/claude-code/14-hidden-commands.md) | claude |
-| 21 | [Telemetry: three pipelines, no program-level kill switch](findings/antigravity/05-telemetry.md) | agy |
-| 22 | [The 0.149.0 → 0.155.1 feature-flag delta + hidden `--managed-daemon`](findings/codex/13-flag-delta-managed-daemon.md) | codex |
+| 3 | [The full prompt corpus: every system prompt the binary ships](findings/codex/14-prompt-corpus.md) (new: the vendor's own instruction text, byte-exact, including a per-model `instructions_template` for gpt-6-astra) | codex |
+| 4 | [Entire app carved out as 41MB of searchable JavaScript](findings/claude-code/01-bundle-surgery.md) | claude |
+| 5 | [The prompt corpus: no single system prompt, just style preambles plus shared sections](findings/claude-code/17-prompt-corpus.md) (new: proves the system prompt is assembled from fragments, not stored; full security-review protocol recovered) | claude |
+| 6 | [Model families: Fable 5/5.1 (public) and Mythos 5/5.1 (internal-only)](findings/claude-code/10-fable-mythos.md) | claude |
+| 7 | [Local control plane: 348 methods, drivable with curl](findings/antigravity/01-local-control-plane.md) | agy |
+| 8 | [The prompt corpus: personas are templates, and a Teamwork swarm ships inside](findings/antigravity/16-prompt-corpus.md) (new: the safety judge's full decision text plus an undocumented multi-agent swarm family) | agy |
+| 9 | [GrowthBook is the experiment SDK: every `tengu_*` gate is a GrowthBook evaluation](findings/claude-code/13-growthbook-experiment-sdk.md) | claude |
+| 10 | [The autonomy roadmap is a config surface: six experimental structs, fully field-recovered](findings/codex/11-roadmap-struct-fields.md) | codex |
+| 11 | [Gated rerun: an independent verifier re-checked 226 claims against the frozen bytes](findings/codex/15-gated-rerun.md) (new: 23 prior claims overturned, analytics default flipped, Sentry DSN and cost endpoint found) | codex |
+| 12 | [Gateway is a full self-hostable HTTP server, not just auth](findings/claude-code/06-gateway-server.md) | claude |
+| 13 | [Per-step safety screen: 3 monitors, server-overridable](findings/antigravity/02-safety-screen.md) | agy |
+| 14 | [Muse Code: the main prompt ships in two editions, no dedicated safety prompt](findings/muse/01-prompt-corpus.md) (new: first byte-level look at Meta's coding CLI) | muse |
+| 15 | [Code-mode host: a Rust binary embedding V8 that runs raw JS cells](findings/codex/04-code-mode-host.md) | codex |
+| 16 | [Permission engine decoded: deny > ask > allow, simulated exactly](findings/claude-code/03-permission-engine.md) | claude |
+| 17 | [Update signing (RSA-4096 SPKI), Datadog sink, event logging](findings/claude-code/16-update-signing-datadog.md) | claude |
+| 18 | [Sanctioned bring-your-own-model path (`AGY_LLM_GATEWAY_*`)](findings/antigravity/12-byo-model-path.md) | agy |
+| 19 | [Cloud Run auto-updater: the real update host](findings/antigravity/15-cloud-run-updater.md) | agy |
+| 20 | [Rate limits are readable AND redeemable (idempotency-keyed reset credits)](findings/codex/07-rate-limits.md) | codex |
+| 21 | [The CLI is its own MCP server; first-party Gmail/GCal hosts](findings/claude-code/07-mcp-plane.md) | claude |
+| 22 | [Unleash: the second flag system](findings/antigravity/14-unleash-flag-system.md) | agy |
+| 23 | [Gateway full route table (18 paths)](findings/claude-code/15-gateway-route-table.md) | claude |
+| 24 | [The code-mode sandbox is exactly 14 injected names (and no more)](findings/codex/12-cell-globals.md) | codex |
+| 25 | [Hidden commands + unregistered `claude daemon`](findings/claude-code/14-hidden-commands.md) | claude |
+| 26 | [Telemetry: three pipelines, no program-level kill switch](findings/antigravity/05-telemetry.md) | agy |
+| 27 | [The 0.149.0 → 0.155.1 feature-flag delta + hidden `--managed-daemon`](findings/codex/13-flag-delta-managed-daemon.md) | codex |
 
-The other finding docs live under [`findings/antigravity/`](findings/antigravity/), [`findings/claude-code/`](findings/claude-code/), and [`findings/codex/`](findings/codex/).
+Full prompt texts live in [`prompts/`](prompts/). The other finding docs live under [`findings/antigravity/`](findings/antigravity/), [`findings/claude-code/`](findings/claude-code/), [`findings/codex/`](findings/codex/), and [`findings/muse/`](findings/muse/).
 
 ## For developers
 
@@ -141,7 +149,8 @@ Method, version pins, re-verification, and what was not verified.
 
 - `agy` v1.3.1 (sha256 `085f43e0…455ef`)
 - `claude` 2.1.287 (244,317,368 bytes, Bun)
-- `codex` 0.155.1 + `codex-code-mode-host` 69MB. Note: the app-server schema baseline was first captured against 0.149.0 and refreshed to a fresh 0.155.1 emission on the reinforcement pass (finding 13 documents the delta); `gpt-6-astra` is a 0.155.1-era addition.
+- `codex` 0.155.1 + `codex-code-mode-host` 69MB.
+- `muse` 1.4.7 (`muse-bin-1.4.7-R6101.1`, 363,518,168 bytes). Prompts pass only (2026-10-20). Note: the app-server schema baseline was first captured against 0.149.0 and refreshed to a fresh 0.155.1 emission on the reinforcement pass (finding 13 documents the delta); `gpt-6-astra` is a 0.155.1-era addition.
 - Trials re-ran 2026-10-18/19.
 
 **Re-verification.** 38 of 39 trials CONFIRMED live against the installed binaries. 1 is PARTIAL: `claude mcp list` hangs doing live health checks (it functions, but is unbounded without a timeout). All PoCs exit 0. Each finding gives per-byte evidence (offsets, quoted literals) so claims can be re-derived.
@@ -157,6 +166,12 @@ Method, version pins, re-verification, and what was not verified.
 - **6/6 kills confirmed.**
 - ~281 new CONFIRMED internals.
 - The systemic cause of the count errors, lossy packed-string-run tokenizing, is documented in [methodology](methodology/README.md) with the correct methods.
+
+**Gated rerun + prompt pass (2026-10-20, `local-re-swarm`).**
+
+- Codex claims re-gated against the re-pinned binary by a verifier that did not produce them: 188 priors (80 VERIFIED, 40 CORROBORATED, 45 UNVERIFIED, **23 DISAGREEMENT**) and 38 new claims (32 VERIFIED, 3 CORROBORATED, 3 DISAGREEMENT).
+- **Corrections folded into the docs in place, dated 2026-10-20:** analytics default direction (finding 08), six-variant login blob and no-`id_token` tokens run (finding 06), ShellEnvironmentPolicy field list (finding 05), the `updater failed` literal (finding 13). Finding 15 is the full ledger.
+- Prompt corpora extracted for all four tools (135 items). Muse is new to the repo: prompts only, no control-plane or telemetry pass yet.
 
 **What was NOT verified.**
 

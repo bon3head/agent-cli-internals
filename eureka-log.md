@@ -112,6 +112,26 @@ Embedded assembled monitors config at strings-line 1611062 (16.5KB) with header:
 - 8/8 codex trials CONFIRMED — with a version surprise: PATH `codex` is 0.149.0 (`/opt/hatch-image/bin/codex`), not the 0.155.1 repair; the REA schema/feature-flag baselines are a 0.149.0 capture, and `gpt-6-astra` (19 strings hits, live catalog entry in 0.155.1) is absent from 0.149.0. Doctor flags 0.163.0 available.
 - Byte anchors re-verified: pclntab 164,366/19,312; MCP blocked-hosts array, model-catalog seed, and registry anchors all byte-exact on the live binaries.
 
+## 2026-10-20 (early AM)
+
+### 00:33–01:15 — codex: gated rerun, 226 claims
+Prior claims transcribed by one context, gated by a different one against the re-pinned binary (sha256 `0753dfe1…b761`, no drift). 188 priors: 80 VERIFIED, 40 CORROBORATED, 45 UNVERIFIED, 23 DISAGREEMENT. 38 new lane claims: 32 VERIFIED, 3 CORROBORATED, 3 DISAGREEMENT, 0 UNVERIFIED. Byte claims via `reverify`; counts via an independent scanner, never grep line counts.
+
+### 00:4x — codex: analytics default was backwards
+Embedded help text: analytics disabled by default for CLI/app-server; defaults ON only when a first-party host sets the hidden `analytics-default-enabled` flag. Finding 08's headline flipped. Docs said on; the binary's own help text says off.
+
+### 00:4x — codex: three more egress facts
+Sentry crash DSN embedded (`o33249.ingest.us.sentry.io`). Per-turn cost endpoint `api.chatgpt.com/v1/analytics/codex/turn-costs`. `codex_turn_event` carries `line_fingerprints` + `repo_hash`: the analytics payload identifies the repo and the shape of accepted code.
+
+### 00:5x — codex: updater goes through a shell
+Packed run @219190669: `/bin/sh`, `-s`, `CODEX_RELEASE`, `CODEX_UPDATE_FROM_RELEASE`, `failed to pass standalone Codex updater to shell`. The same run killed repo finding 13's quoted literal: `updater failed` = 0 hits; the real literals have no `updater` prefix. Packed-run misreads cut both ways, including ours.
+
+### 01:2x — all four tools: prompt corpora extracted
+Anchor scans (`You are …`, `classifier_instructions`, `tenant_policy_config`) + scored printable-run extraction. codex: 34 items, per-model templates, Guardian prompts, Security Policy is a runtime slot (`{{ tenant_policy_config }}`). agy: 50 items, personas are Go template fragments, Teamwork swarm family, command safety adjudicator 14,798 chars @95102230. claude: 35 items, no contiguous main prompt (3 style preambles + shared sections), security review prompt 10,709 chars. muse (new target): 16 items, main prompt in two editions (~26K / ~45K chars), bundled Read Session skill, no dedicated safety prompt.
+
+### 01:2x — muse: string table is duplicated
+The prompt region appears twice (second copy ~+2.2M). Dedupe is mandatory; naive counts on this binary double.
+
 ## Standing lessons
 
 1. Read the binary's own documentation first. Twice the richest surface (agy's curl recipe, codex's schema generator) was printed on the box.

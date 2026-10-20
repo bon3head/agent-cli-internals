@@ -46,3 +46,9 @@ Deprecations signal direction: hooks consolidation, workflows → skills, knowle
 - Update download host = GitHub releases (public org + update flow verified; download host string unverified).
 - `AGY_CLI_DISABLE_SAFETY_FILTERING` honored (string present, read unverified — needs a behavioral probe with a policy-triggering step).
 - Google can roll safety changes by user group without a client release (override machinery present; no observed instance).
+
+## Prompt corpus (2026-10-20, CONFIRMED)
+
+- **Personas are Go templates, assembled at runtime.** Antigravity Agent and Cascade survive as fragments with `{{slot}}` markers; no finished system prompt exists in the binary. Full corpus: [finding 16](../findings/antigravity/16-prompt-corpus.md), texts in [prompts/antigravity.md](../prompts/antigravity.md).
+- **Teamwork: a second swarm architecture.** Role agents (`implementer@swe_light`, `reviewer@swe_light`, `qa@swe_light`), `swarm_follower`, `blackboard_manager`, `pipeline_blackboard_updater`, `swarm_synthesizer`, Critic Orchestrator. Coordination is a shared blackboard file under `.agents/teamwork/`; prompts reference a `google3` root. Undocumented and separate from the coordinator model.
+- **Command safety adjudicator (offset 95102230, 14,798 chars):** the full per-command decision text; reversible vs human-approval line. The Jetski trajectory rater's full text also recovered (offset 93322367).

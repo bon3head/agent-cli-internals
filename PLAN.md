@@ -7,6 +7,8 @@
 **Codex CLI** (`findings/codex/`, 10): 01-app-server-protocol · 02-wire-quirks · 03-transports · 04-code-mode-host · 05-config-surface · 06-auth · 07-rate-limits · 08-telemetry · 09-mcp · 10-codex-cloud
 **Internal intel** (`internal-intel/`): antigravity.md (codenames, kill switches, lineage) · claude-code.md (Fable/Mythos, tengu gates, staging) · codex.md (guardian_subagent, realtime voice, agent identity…)
 
+**2026-10-20 fold-in:** prompt corpora for all four tools (agy 16, claude 17, codex 14 finding docs; new `findings/muse/` with 01) + codex gated-rerun doc (15) · verbatim prompt texts in `prompts/` · `internal-intel/muse.md` added · dated corrections in place in codex findings 05, 06, 08, 13.
+
 ## Repo structure
 
 ```

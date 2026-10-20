@@ -1,4 +1,4 @@
-# 08. Telemetry is two pipelines, not one
+# 08. Telemetry is three channels, not one
 
 **Version pin:** all string evidence from the **0.155.1** bun binary (`otel/src/provider.rs`
 etc.), cross-checked against official docs (`https://developers.openai.com/codex/config-advanced/`,
@@ -7,9 +7,11 @@ corroboration noted per claim). `codex --help` / `codex exec --help` grep re-ver
 on **0.149.0** (zero matches for `analytic|otel|metric|telemetry`). Exact OTel batch/export
 numerics are UNKNOWN; `service.name` value unrecovered.
 
+> **Correction (2026-10-20, gated rerun):** the headline below said analytics is ON by default. The embedded help text in 0.155.1 says analytics is **disabled by default** for the CLI and app-server; it defaults ON only when a first-party host (for example the VS Code extension) sets the hidden `analytics-default-enabled` flag / `ANALYTICS_DEFAULT_ENABLED` env. The `[analytics] enabled = false` opt-out still applies. The two-pipeline split below stands; the default direction was wrong.
+
 ## 1. WHAT WAS FOUND
 
-**Pipeline 1 (Analytics): ON by default.** Sends anonymous usage/health metrics to OpenAI.
+**Pipeline 1 (Analytics): default OFF in the CLI (see correction note above).** Sends anonymous usage/health metrics to OpenAI when enabled.
 Byte-exact literal in `otel/src/provider.rs` rodata: `"https://ab.chatgpt.com/otlp/v1/metrics"`.
 It is the only fully-qualified OTLP URL in the binary (no `/v1/traces` or `/v1/logs` variant:
 searched, zero hits). Pipeline attribution (analytics metrics leg) is high-confidence
@@ -80,6 +82,14 @@ keys, kill switch, event/metric names, opt-in/opt-out directions, and the
 `OTEL_SDK_DISABLED` absence are CONFIRMED. Which pipeline consumes the ab.chatgpt.com URL
 is high-confidence INFERENCE. Batch numerics, `service.name` value, and remaining
 `OtelConfigToml` fields are UNKNOWN.
+
+## Addendum (2026-10-20, gated rerun, all VERIFIED against frozen bytes)
+
+- **Third channel: crash reporting.** An embedded Sentry DSN (host `o33249.ingest.us.sentry.io`, project `4510195390611458`) ships in the binary. Not part of either pipeline above.
+- **Dedicated per-turn cost endpoint:** `https://api.chatgpt.com/v1/analytics/codex/turn-costs`, separate from the OTLP metrics URL and from the analytics events path `/codex/analytics-events/events` (embedded once, adjacent to analytics client error strings).
+- **The turn event fingerprints code.** `codex_turn_event` fields include `accepted_added_lines`, `accepted_deleted_lines`, `line_fingerprints`, and `repo_hash`. The analytics payload is not just counters: it identifies the repository and the shape of accepted code.
+- **No `CODEX_*` env var disables telemetry, analytics, or otel** (full namespace scan, 104 names).
+- **Update surface:** update checks read GitHub releases/latest, the Homebrew cask JSON (`formulae.brew.sh`), and `chatgpt.com/codex/install.sh`; check state persists as `VersionInfo{latest_version, last_checked_at, dismissed_version}`. The standalone updater is passed to a shell (`/bin/sh` + `-s`, `CODEX_RELEASE` / `CODEX_UPDATE_FROM_RELEASE` adjacent at offset 219190669). Full treatment in finding 15.
 
 ## 2. HOW IT WAS FOUND
 

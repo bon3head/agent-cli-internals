@@ -38,3 +38,14 @@ Astra · Terra · Luna · Sol are a celestial-body family naming scheme, not one
 
 - Agent identity timeline (strings confirm the feature; ship date unverified).
 - `gpt-6-astra` is a PUBLIC model (launched 2026-09-03, API id `gpt-6-astra`, $10/$50 per MTok) — listed in the 0.155.1 catalog; the open question is CLI servability per plan tier, not existence. Note: the astra slug is a **0.155.1-era addition** — absent from 0.149.0 binary strings and its live catalog; the REA schema/flag baselines were captured against 0.149.0.
+
+## Prompt corpus + gated rerun (2026-10-20, CONFIRMED)
+
+- **Prompts ship per model.** Each catalog entry carries its own `instructions_template` (recovered for `gpt-6-astra` and `gpt-5.6-sol`). The full corpus: [finding 14](../findings/codex/14-prompt-corpus.md), texts in [prompts/codex.md](../prompts/codex.md).
+- **Security Policy is a runtime slot.** The Guardian prompts contain `{{ tenant_policy_config }}` where the policy text goes. The policy is injected at runtime, not embedded: it can change without a binary release, and its current text is not recoverable from the binary.
+- **Crash reporting is a third egress channel:** embedded Sentry DSN (`o33249.ingest.us.sentry.io`, project `4510195390611458`). Plus a dedicated cost endpoint `api.chatgpt.com/v1/analytics/codex/turn-costs`.
+- **Analytics fingerprints the work:** `codex_turn_event` carries `line_fingerprints` and `repo_hash` alongside token counts and accepted line counts.
+- **Analytics default (corrected):** OFF for the CLI/app-server; defaults ON only inside first-party hosts via the hidden `analytics-default-enabled` flag.
+- **Standalone updater runs through a shell:** `/bin/sh` + `-s` with `CODEX_RELEASE` / `CODEX_UPDATE_FROM_RELEASE`; update checks read GitHub releases, the Homebrew cask JSON, and `chatgpt.com/codex/install.sh`.
+- **Login blob has six variant names** (adds `amazonBedrockAccessKeys`); tokens run has no `id_token`. 104 `CODEX_*` env names in the image, 18 of them `CODEX_SNAPSHOT*`.
+- **Gating works:** an independent rerun overturned 23 of 188 prior claims (finding 15). Every overturned claim was a packed-run artifact or a default-direction error, not a fabrication.

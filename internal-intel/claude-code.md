@@ -46,3 +46,10 @@ Two embedded catalogs: a signed compiled seed (v1468, issued 2026-10-01, key `cl
 - Third-party alias lag as deliberate availability policy (pattern across 4 providers, no policy string).
 - Pricing codes as $X/$Y per MTok (format consistent, no dollar mapping string).
 - `ccd`/`ccr` surface semantics (appear in seed surfaces + `CLAUDE_CODE_ENTRYPOINT` values; role unverified).
+
+## Prompt corpus (2026-10-20, CONFIRMED)
+
+- **There is no stored main system prompt.** The preamble ships in three style variants (Proactive / Concise / Explanatory, offsets 98158416 / 98158740 / 98159024) and the rest is shared sections (Git Safety Protocol, PR creation, output style). The system prompt is assembled at runtime from fragments. Full corpus: [finding 17](../findings/claude-code/17-prompt-corpus.md), texts in [prompts/claude-code.md](../prompts/claude-code.md).
+- **The security review agent prompt is complete in the binary** (10,709 chars): scope resolution, defect taxonomy, signal-to-noise bar. A reusable audit protocol, shipped as data.
+- **Claude in Chrome is a separate prompted surface:** browser-automation instruction pack with its own tool namespace (`mcp__claude-in-chrome__*`).
+- Built-in agent library in full: Plan, Explore, general-purpose, review-for-recall, review-for-precision, batch orchestrator, memory extraction/selection, workflow-script agents, agent teams.

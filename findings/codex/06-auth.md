@@ -21,6 +21,8 @@ UNRECOVERABLE (self-redacting format strings: see §1).
    > @0xd1763d8–0xd1764a8).
 5. `amazonBedrock`: `[UNSTABLE] experimental`; `{apiKey, region}`; plus `amazonBedrockAccessKeys{accessKeyId, secretAccessKey, sessionToken?, region}` (schema, 0.149.0). Bedrock is first-class: setup wizard strings, `x-amzn-mantle-client-agent` header, `AWS_BEARER_TOKEN_BEDROCK`.
 
+> **Correction (2026-10-20, gated rerun):** at the binary level there are **six** variant names, not five. The login serde blob (208 bytes @0xd1763d8, `.rodata`) reads `apiKey, chatgpt, chatgptDeviceCode, chatgptAuthTokens, amazonBedrock, amazonBedrockAccessKeys`: `amazonBedrockAccessKeys` is a blob-level variant of its own. Also, `appBrand` is **not** in the login blob (the chatgpt-variant position holds `refreshToken`); `appBrand`'s 5 hits live in elicitation structs elsewhere. The five-type union above is the 0.149.0 schema shape; the blob is the 0.155.1 ground truth.
+
 **Token endpoints (binary strings, 0.155.1):**
 - Refresh: `https://auth.openai.com/oauth/token`; form fields `refresh_token client_id grant_type`; observed grant `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer` + `assertion` param.
 - Revoke (logout): `https://auth.openai.com/oauth/revoke` (params include `token_type_hint`, `client_id`).
@@ -36,7 +38,8 @@ UNRECOVERABLE (self-redacting format strings: see §1).
 **Token storage** (`~/.codex/auth.json`, mode 0600: field names only, values never recorded):
 top-level `auth_mode` (`ApiKey|Chatgpt|ChatgptDeviceCode|ChatgptAuthTokens|AmazonBedrock`),
 `OPENAI_API_KEY` (string-or-null), `tokens{id_token, access_token, refresh_token, account_id}`,
-`last_refresh` (ISO timestamp). Credential-store modes: `keyring | ephemeral`
+`last_refresh` (ISO timestamp).
+> **Correction (2026-10-20, gated rerun):** the binary's tokens field run contains **no `id_token`**. The run reads `access_token, refresh_token, account_id, chatgpt_user_id, user_id, chatgpt_account_id, chatgpt_account_is_fedram`. The `id_token` in the storage line above is not corroborated by the 0.155.1 blob. A `task_id` string sits directly after the tokens run, adjacent to `struct AgentIdentityAuthRecord with 8 elements`. Credential-store modes: `keyring | ephemeral`
 (DBus keyring on Linux); this box overrides to file via `cli_auth_credentials_store =
 "file"` in config.toml. `codex doctor` (0.149.0): `auth storage mode File`, `stored auth
 mode chatgpt`, `stored API key false`, `stored ChatGPT tokens true`, `stored agent identity false`.
