@@ -9,6 +9,7 @@ Five CLIs were taken apart byte by byte: Google's `agy` (Antigravity), Anthropic
 
 ## Start here: the influential bits
 
+- [Integration synthesis: what five agent CLIs are actually built like](INTEGRATION.md) (what separates them, what they share, feature-to-mechanism mappings, the audit methods)
 - [The binary ships its own source: 50.5 MB of original Droid modules recovered from the Bun module graph](findings/droid/03-source-recovery-method.md) (the extraction method, including the two wrong turns)
 - [Factory-Judge: one persona, three rubrics, and it scores the user](findings/droid/04-judges-and-localsignals.md) ("Judge the user, not the assistant"; org-controlled consent gate)
 - [Droid prompt corpus](prompts/droid.md#3-safety--security) (Shield triage, the shadow risk classifier, analytics judges; full two-level index in [prompts/](prompts/README.md))
