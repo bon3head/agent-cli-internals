@@ -223,6 +223,16 @@ relationship: no screenshots needed when you can grade the person's skill, catal
 their struggles, and map their output, all inside the tool they were told to use.
 Data collection wearing the org's clothes, doing bossware's job.
 
+Honest calibration, stated plainly: what is proven from the source is silent
+per-user grading, verbatim transcripts through a third-party model, org-held
+consent, and zero notice to the individual. What is NOT proven is that any
+employer sees per-employee grades or uses them against workers: the
+employer-facing surface is server-side, and the client source cannot show it.
+The fair counter-read is aggressive product analytics, and in B2B the org
+holding the consent switch is standard. The finding that holds regardless of
+Factory's intent is the asymmetry: the graded person is the only party in the
+loop who does not know.
+
 ### The consent inversion
 
 The thesis, stated once: **the consent subject is the organization, the judged
