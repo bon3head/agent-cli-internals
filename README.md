@@ -7,6 +7,96 @@ Four CLIs were taken apart byte by byte: Google's `agy` (Antigravity), Anthropic
 **Versions:** `agy` v1.3.1 · `claude` 2.1.287 · `codex` 0.155.1 · `muse` 1.4.7
 **Also here:** [methodology](methodology/README.md) · [eureka log](eureka-log.md) · [PoCs](pocs/) · [diagrams](diagrams/) · [full prompt texts](prompts/) · [honesty box](#honesty-box) (caveats and what was not verified)
 
+## Start here: the influential bits
+
+- [gpt-6-astra `instructions_template`](prompts/codex.md#13-you-are-codex-an-agent-based-on-gpt-6-gpt-6-astra-instructions_template) (gpt-6-astra's full system prompt, byte-exact)
+- [Guardian action-review prompt](prompts/codex.md#21-guardian-action-review-prompt-you-are-judging-one-planned-coding-agent-action) (the judge that approves codex tool calls)
+- [Security Policy template](prompts/codex.md#23-security-policy-template) (codex's security policy is injected, not embedded)
+- [Muse Code main prompt, both editions](prompts/muse.md#1-core-personas) (muse's main prompt, both shipped editions)
+- [Bundled "Read Session" skill](prompts/muse.md#21-session-storage--bundled-read-session-skill-offset-2321100-the-storage-statement-itself-at-2321273) (bundled skill that reads your past sessions)
+- [Claude Code system prompt (fragments)](prompts/claude-code.md#1-core-system-prompt) (no stored system prompt, only fragments)
+- [Security review agent](prompts/claude-code.md#24-security-review-agent-offset-98276396) (claude code's complete security-review protocol)
+- [Jetski safety and security rater](prompts/antigravity.md#jetski-safety-and-security-rater) (the safety judge screening agy actions)
+- [Command safety adjudicator](prompts/antigravity.md#command-safety-adjudicator) (decides if a shell command is reversible)
+- [Teamwork agent: implementer + QA roles](prompts/antigravity.md#teamwork-agent-implementer--qa-roles) (undocumented multi-agent swarm inside agy)
+- [Telemetry addendum (2026-10-20)](findings/codex/08-telemetry.md#addendum-2026-10-20-gated-rerun-all-verified-against-frozen-bytes) (sentry dsn, cost endpoint, code fingerprints)
+- [Updater note (internal intel)](internal-intel/codex.md#prompt-corpus--gated-rerun-2026-10-20-confirmed) (standalone updater runs a fetched shell script)
+
+## Contents
+
+This page: [start here](#start-here-the-influential-bits)
+- [The 30-second version](#the-30-second-version)
+- [The three control planes at a glance](#the-three-control-planes-at-a-glance)
+- [What this unlocks (in plain English)](#what-this-unlocks-in-plain-english)
+- [Receipts: cracked open, on the record](#receipts-cracked-open-on-the-record)
+- [Findings index, ranked by bigness](#findings-index-ranked-by-bigness)
+- [For developers](#for-developers)
+- [Honesty box](#honesty-box)
+
+Tools and their internals:
+
+- **agy (Google Antigravity)** · [prompts](prompts/antigravity.md) · [internal intel](internal-intel/antigravity.md) · findings:
+  - [01. Local control plane: the language server is a fully drivable agent socket](findings/antigravity/01-local-control-plane.md)
+  - [02. Safety screen decoded: per-step, 2-stage, server-overridable](findings/antigravity/02-safety-screen.md)
+  - [03. Model catalog: server-driven, 4-tier waterfall, 39-entry alias map](findings/antigravity/03-model-catalog.md)
+  - [04. Auth = Gemini Code Assist machinery; device flow + PKCE, 3 client IDs](findings/antigravity/04-auth.md)
+  - [05. Telemetry: three pipelines; usage stats have no CLI kill switch](findings/antigravity/05-telemetry.md)
+  - [06. Sidecar web server: token-authenticated local HTTP agent handle](findings/antigravity/06-sidecar-server.md)
+  - [07. Full hook contract extracted (6 events, protojson stdin/stdout)](findings/antigravity/07-hook-contract.md)
+  - [08. Embedded docs ARE the runtime skill corpus (10/12 byte-identical on disk)](findings/antigravity/08-embedded-skill-corpus.md)
+  - [09. pclntab cracked: 164,366 functions enumerated in 2.9s, <100MB RAM](findings/antigravity/09-pclntab.md)
+  - [10. Remote-control mesh + mic-serve + sandbox IPC mapped](findings/antigravity/10-remote-mesh.md)
+  - [11. Internal intel overview: lineage, codenames, kill switches, update mechanics](findings/antigravity/11-internal-intel-overview.md)
+  - [12. BYO model path: `AGY_LLM_GATEWAY_*` env vars](findings/antigravity/12-byo-model-path.md)
+  - [13. The 889-method RPC service map](findings/antigravity/13-rpc-service-map.md)
+  - [14. Unleash: the second flag system](findings/antigravity/14-unleash-flag-system.md)
+  - [15. Cloud Run auto-updater: the real update host](findings/antigravity/15-cloud-run-updater.md)
+  - [16. The prompt corpus: personas are templates, and a Teamwork swarm ships inside](findings/antigravity/16-prompt-corpus.md)
+- **claude (Claude Code)** · [prompts](prompts/claude-code.md) · [internal intel](internal-intel/claude-code.md) · findings:
+  - [01. Full JS bundle carved from the binary (C6)](findings/claude-code/01-bundle-surgery.md)
+  - [02. Settings schema fully recovered: 183 typed keys (C1)](findings/claude-code/02-settings-schema.md)
+  - [03. Permission decision engine decoded (C1)](findings/claude-code/03-permission-engine.md)
+  - [04. 33 hook events, 5 hook types (C1)](findings/claude-code/04-hook-events.md)
+  - [05. Cloud-session control plane mapped (C2)](findings/claude-code/05-cloud-control-plane.md)
+  - [06. `claude gateway` is a full HTTP server in the binary (C2)](findings/claude-code/06-gateway-server.md)
+  - [07. MCP: CLI serves itself; first-party endpoints expanded (C3)](findings/claude-code/07-mcp-plane.md)
+  - [08. Plugin plane: marketplace = GCS + git, sha256-pinned trust (C3)](findings/claude-code/08-plugin-plane.md)
+  - [09. Auth plane: endpoints, client IDs, storage, providers (C4)](findings/claude-code/09-auth-plane.md)
+  - [10. Model families in the binary: Fable 5/5.1 (public) and Mythos 5/5.1 (internal-only) (C5)](findings/claude-code/10-fable-mythos.md)
+  - [11. Codenamed experiment gates + grounded feature families (C5)](findings/claude-code/11-experiment-gates.md)
+  - [12. Hidden flags and aliases (C2/C3)](findings/claude-code/12-hidden-flags.md)
+  - [13. GrowthBook is the experiment SDK (NOT Statsig)](findings/claude-code/13-growthbook-experiment-sdk.md)
+  - [14. Hidden commands + unregistered `claude daemon` + child-session flag forwarding](findings/claude-code/14-hidden-commands.md)
+  - [15. Gateway full route table (18 paths)](findings/claude-code/15-gateway-route-table.md)
+  - [16. Update signing (RSA-4096), Datadog sink, event logging, master kill switch](findings/claude-code/16-update-signing-datadog.md)
+  - [17. The prompt corpus: no single system prompt, just style preambles plus shared sections](findings/claude-code/17-prompt-corpus.md)
+- **codex (OpenAI Codex CLI)** · [prompts](prompts/codex.md) · [internal intel](internal-intel/codex.md) · findings:
+  - [01. The binary ships its own app-server protocol spec](findings/codex/01-app-server-protocol.md)
+  - [02. Wire-envelope quirks that break naive JSON-RPC clients](findings/codex/02-wire-quirks.md)
+  - [03. Transports: stdio, unix socket, websocket](findings/codex/03-transports.md)
+  - [04. codex-code-mode-host: Rust+V8 cell executor over gRPC or stdio IPC](findings/codex/04-code-mode-host.md)
+  - [05. Config: 101 of 101 fields recovered, 10-layer precedence](findings/codex/05-config-surface.md)
+  - [06. Auth: five login types; session-level, not per-method](findings/codex/06-auth.md)
+  - [07. Rate limits are readable AND redeemable](findings/codex/07-rate-limits.md)
+  - [08. Telemetry is three channels, not one](findings/codex/08-telemetry.md)
+  - [09. MCP is a first-class citizen with a future protocol version negotiated in-code](findings/codex/09-mcp.md)
+  - [10. `codex cloud` is experimental-tagged but fully present](findings/codex/10-codex-cloud.md)
+  - [11. The autonomy roadmap is a config surface: six experimental structs, fully field-recovered](findings/codex/11-roadmap-struct-fields.md)
+  - [12. The code-mode sandbox is exactly 14 injected names (and no more)](findings/codex/12-cell-globals.md)
+  - [13. The 0.149.0 → 0.155.1 feature-flag delta + the hidden `--managed-daemon` flag](findings/codex/13-flag-delta-managed-daemon.md)
+  - [14. The full prompt corpus: every system prompt the binary ships](findings/codex/14-prompt-corpus.md)
+  - [15. Gated rerun: an independent verifier re-checked 226 claims against the frozen bytes](findings/codex/15-gated-rerun.md)
+- **muse (Meta Muse Code)** · [prompts](prompts/muse.md) · [internal intel](internal-intel/muse.md) · findings:
+  - [01. Muse Code: the main prompt ships in two editions, no dedicated safety prompt](findings/muse/01-prompt-corpus.md)
+
+Prompt corpora with their internal category sections:
+- [codex](prompts/codex.md): [Conventions](prompts/codex.md#conventions), [1. Core personas](prompts/codex.md#1-core-personas), [2. Guardian & safety](prompts/codex.md#2-guardian--safety), [3. Orchestration prompts](prompts/codex.md#3-orchestration-prompts), [4. Tool instructions & declarations](prompts/codex.md#4-tool-instructions--declarations), [5. App-server protocol methods by namespace](prompts/codex.md#5-app-server-protocol-methods-by-namespace), [Item inventory](prompts/codex.md#item-inventory)
+- [antigravity](prompts/antigravity.md): [1. Core personas](prompts/antigravity.md#1-core-personas), [2. Subagents & orchestration](prompts/antigravity.md#2-subagents--orchestration), [3. Safety & policy](prompts/antigravity.md#3-safety--policy), [4. Utility prompts](prompts/antigravity.md#4-utility-prompts), [5. Tool-related text](prompts/antigravity.md#5-tool-related-text)
+- [claude-code](prompts/claude-code.md): [1. Core system prompt](prompts/claude-code.md#1-core-system-prompt), [2. Built-in agents](prompts/claude-code.md#2-built-in-agents), [3. Feature & workflow agents](prompts/claude-code.md#3-feature--workflow-agents), [4. Tool-internal prompts](prompts/claude-code.md#4-tool-internal-prompts), [5. Tool descriptions](prompts/claude-code.md#5-tool-descriptions)
+- [muse](prompts/muse.md): [1. Core personas](prompts/muse.md#1-core-personas), [2. Session & lifecycle](prompts/muse.md#2-session--lifecycle), [3. Safety & policy](prompts/muse.md#3-safety--policy), [4. Tool-related text](prompts/muse.md#4-tool-related-text), [5. Other agent modes](prompts/muse.md#5-other-agent-modes)
+
+More: [methodology](methodology/README.md) · [eureka log](eureka-log.md) · [diagrams](diagrams/) · [PoCs](pocs/)
+
 ## The 30-second version
 
 - **Antigravity exposes 889 RPC methods across 30 services**, including a 348-method local control server (`localhost:5387`) you can drive with curl. The binary prints the recipe.
