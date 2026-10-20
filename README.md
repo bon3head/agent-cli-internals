@@ -2,7 +2,7 @@
 
 **Your AI coding tools look like chat boxes. Underneath, they're platforms with hidden control panels. This repo documents the panels.**
 
-Four CLIs were taken apart byte by byte: Google's `agy` (Antigravity), Anthropic's `claude` (Claude Code), OpenAI's `codex`, and Meta's `muse` (Muse Code, prompts pass only). No agent was run and no prompt was sent to a model. Everything here comes from the text baked into the programs, the settings they ship with, and the self-describing specs some of them carry.
+Four CLIs were taken apart byte by byte: Google's `agy` (Antigravity), Anthropic's `claude` (Claude Code), OpenAI's `codex`, and Meta's `muse` (Muse Code, prompts pass only). No live model call was made and no real request left the box. Everything here comes from the text baked into the programs, the settings they ship with, and the self-describing specs some of them carry. (2026-10-20: Claude Code's served prompts were additionally captured by running the CLI against a local stub endpoint returning canned responses; that material is marked "as served".)
 
 **Versions:** `agy` v1.3.1 · `claude` 2.1.287 · `codex` 0.155.1 · `muse` 1.4.7
 **Also here:** [methodology](methodology/README.md) · [eureka log](eureka-log.md) · [PoCs](pocs/) · [diagrams](diagrams/) · [full prompt texts](prompts/) · [honesty box](#honesty-box) (caveats and what was not verified)
@@ -14,7 +14,7 @@ Four CLIs were taken apart byte by byte: Google's `agy` (Antigravity), Anthropic
 - [Security Policy template](prompts/codex.md#23-security-policy-template) (codex's security policy is injected, not embedded)
 - [Muse Code main prompt, both editions](prompts/muse.md#1-core-personas) (muse's main prompt, both shipped editions)
 - [Bundled "Read Session" skill](prompts/muse.md#21-session-storage--bundled-read-session-skill-offset-2321100-the-storage-statement-itself-at-2321273) (bundled skill that reads your past sessions)
-- [Claude Code system prompt (fragments)](prompts/claude-code.md#1-core-system-prompt) (no stored system prompt, only fragments)
+- [Claude Code served system prompt](prompts/claude-code.md#0-as-served-dynamic-capture-2026-10-20) (compact ~6K prompt captured live; the binary itself stores only fragments)
 - [Security review agent](prompts/claude-code.md#24-security-review-agent-offset-98276396) (claude code's complete security-review protocol)
 - [Jetski safety and security rater](prompts/antigravity.md#jetski-safety-and-security-rater) (the safety judge screening agy actions)
 - [Command safety adjudicator](prompts/antigravity.md#command-safety-adjudicator) (decides if a shell command is reversible)
@@ -92,7 +92,7 @@ Tools and their internals:
 Prompt corpora with their internal category sections:
 - [codex](prompts/codex.md): [Conventions](prompts/codex.md#conventions), [1. Core personas](prompts/codex.md#1-core-personas), [2. Guardian & safety](prompts/codex.md#2-guardian--safety), [3. Orchestration prompts](prompts/codex.md#3-orchestration-prompts), [4. Tool instructions & declarations](prompts/codex.md#4-tool-instructions--declarations), [5. App-server protocol methods by namespace](prompts/codex.md#5-app-server-protocol-methods-by-namespace), [Item inventory](prompts/codex.md#item-inventory)
 - [antigravity](prompts/antigravity.md): [1. Core personas](prompts/antigravity.md#1-core-personas), [2. Subagents & orchestration](prompts/antigravity.md#2-subagents--orchestration), [3. Safety & policy](prompts/antigravity.md#3-safety--policy), [4. Utility prompts](prompts/antigravity.md#4-utility-prompts), [5. Tool-related text](prompts/antigravity.md#5-tool-related-text)
-- [claude-code](prompts/claude-code.md): [1. Core system prompt](prompts/claude-code.md#1-core-system-prompt), [2. Built-in agents](prompts/claude-code.md#2-built-in-agents), [3. Feature & workflow agents](prompts/claude-code.md#3-feature--workflow-agents), [4. Tool-internal prompts](prompts/claude-code.md#4-tool-internal-prompts), [5. Tool descriptions](prompts/claude-code.md#5-tool-descriptions)
+- [claude-code](prompts/claude-code.md): [0. As served (dynamic capture)](prompts/claude-code.md#0-as-served-dynamic-capture-2026-10-20), [1. Core system prompt](prompts/claude-code.md#1-core-system-prompt), [2. Built-in agents](prompts/claude-code.md#2-built-in-agents), [3. Feature & workflow agents](prompts/claude-code.md#3-feature--workflow-agents), [4. Tool-internal prompts](prompts/claude-code.md#4-tool-internal-prompts), [5. Tool descriptions](prompts/claude-code.md#5-tool-descriptions)
 - [muse](prompts/muse.md): [1. Core personas](prompts/muse.md#1-core-personas), [2. Session & lifecycle](prompts/muse.md#2-session--lifecycle), [3. Safety & policy](prompts/muse.md#3-safety--policy), [4. Tool-related text](prompts/muse.md#4-tool-related-text), [5. Other agent modes](prompts/muse.md#5-other-agent-modes)
 
 More: [methodology](methodology/README.md) · [eureka log](eureka-log.md) · [diagrams](diagrams/) · [PoCs](pocs/)
@@ -195,7 +195,7 @@ The carved sources are in [`carved/`](carved/): the Mythos registry entries as J
 | 2 | [Self-documenting protocol: 102 client-to-server methods from the binary's own schema generator](findings/codex/01-app-server-protocol.md) | codex |
 | 3 | [The full prompt corpus: every system prompt the binary ships](findings/codex/14-prompt-corpus.md) (new: the vendor's own instruction text, byte-exact, including a per-model `instructions_template` for gpt-6-astra) | codex |
 | 4 | [Entire app carved out as 41MB of searchable JavaScript](findings/claude-code/01-bundle-surgery.md) | claude |
-| 5 | [The prompt corpus: no single system prompt, just style preambles plus shared sections](findings/claude-code/17-prompt-corpus.md) (new: proves the system prompt is assembled from fragments, not stored; full security-review protocol recovered) | claude |
+| 5 | [The prompt corpus: no single system prompt, just style preambles plus shared sections](findings/claude-code/17-prompt-corpus.md) (new: proves the system prompt is assembled from fragments, not stored; full security-review protocol recovered; the served prompt itself was captured live on 2026-10-20 and is compact, ~6K chars) | claude |
 | 6 | [Model families: Fable 5/5.1 (public) and Mythos 5/5.1 (internal-only)](findings/claude-code/10-fable-mythos.md) | claude |
 | 7 | [Local control plane: 348 methods, drivable with curl](findings/antigravity/01-local-control-plane.md) | agy |
 | 8 | [The prompt corpus: personas are templates, and a Teamwork swarm ships inside](findings/antigravity/16-prompt-corpus.md) (new: the safety judge's full decision text plus an undocumented multi-agent swarm family) | agy |

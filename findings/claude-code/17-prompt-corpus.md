@@ -1,7 +1,18 @@
 # 17. The prompt corpus: no single system prompt, just style preambles plus shared sections
 
 **Version pin:** claude 2.1.287, 244,317,368 bytes, Bun bundle.
-**Full texts:** [prompts/claude-code.md](../../prompts/claude-code.md) (35 items, copied verbatim).
+**Full texts:** [prompts/claude-code.md](../../prompts/claude-code.md) (35 static items, copied verbatim, plus the as-served capture in §0).
+
+## ADDENDUM (2026-10-20): the served prompt, captured
+
+The static verdict below stands for **storage**: no contiguous main system prompt is in the binary. The **served** prompt is now known. Method: `ANTHROPIC_BASE_URL` pointed at a local logging proxy returning canned responses (auth headers redacted at capture, no live model call). Result, in [prompts/claude-code.md](../../prompts/claude-code.md) §0:
+
+- Both entrypoints serve a **compact** system set over 3 blocks: billing header, identity line, main agent block. **sdk-cli: 6,117 chars** ("You are a Claude agent, built on Anthropic's Claude Agent SDK."). **Interactive cli: 6,367 chars** ("You are Claude Code, Anthropic's official CLI for Claude."). The main block is not built from the §1 preambles; its opening line is the standalone string at binary offset 98182736.
+- A separate **system-role "# Environment" message** (~20K chars; 23,813 as rendered in the extract) carries the environment, agent-type roster, and skills list. It is not part of the system set.
+- **Tool descriptions recovered in full via capture**: 30 tools with complete descriptions and input-schema JSON (§0.5), including Bash, Read, Edit, Write, Agent, CronCreate, Monitor. The statically missing descriptions (§5) were missing because they are served, not stored as text runs. Which tools appear varies by entrypoint/mode: 24 headless, up to 42 interactive.
+- A session-title generator prompt (~3,186 chars of system text) was observed in the capture bodies; not extracted into the publishable set.
+
+So §3's "does not exist" now reads precisely: not **stored**; the served prompt exists and is short, with most behavior text in tool descriptions and reminders.
 
 ## 1. WHAT WAS FOUND
 
