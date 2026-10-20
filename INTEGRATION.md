@@ -50,6 +50,9 @@ the agent reads, not hidden machinery.
 judge pipeline: one persona, three rubrics, one of which scores the *user's* expertise
 from session transcripts on triggers the user cannot see, behind an org-controlled
 consent gate ([findings/droid/04-judges-and-localsignals.md](findings/droid/04-judges-and-localsignals.md)).
+The engineers' own comments flag the privacy-sensitive parts as "deliberately out of
+scope" and ship the pipeline anyway: the consent subject is the org, the judged subject
+is the individual, structurally absent from control and notice.
 Per turn, a real LLM classifier (Alloy) picks the model from 9 scored capability cards,
 cheapest at or above 0.7 ([findings/droid/05-alloy-router.md](findings/droid/05-alloy-router.md)).
 Its safety story is also the strangest: a three-layer learned Shield that runs for real,

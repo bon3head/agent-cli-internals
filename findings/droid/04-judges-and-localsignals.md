@@ -178,6 +178,63 @@ you this happened. There is no screen, no setting, no command that shows you you
 grade or lets you opt out. Your employer controls the switch. If they leave it on, you
 are scored. If they turn it off, you are not.
 
+## WHAT THIS IS
+
+This section is the doc's conclusion. It separates code fact from analysis: the facts
+are sourced above, the reading is ours, and it is stated plainly on purpose.
+
+### The engineers identified the privacy line in their own comments, then built on the other side of it
+
+Three passages from the recovered source, verbatim:
+
+1. In `packages/utils/src/signals/rubrics.ts:282-283`, the provenance comment for the
+expertise rubric: "Occupation inference and dollar-value estimates from the paper are
+deliberately out of scope (privacy / calibration)."
+2. In the same file (`:293`), the rubric's own instruction: "Judge the user, not the
+assistant, and judge only relative to this task."
+3. In `src/services/RiskClassificationService.ts:117`, the shadow contract on the
+independent risk classifier: "Call this from preflight paths that must not use the
+independent result for enforcement."
+
+These are not the words of people who stumbled into a surveillance pipeline. They are
+the words of people who read the privacy research, named the sensitive parts,
+excluded them on paper, and then shipped the per-session, per-user, persisted
+version anyway: expertise grades from novice to expert keyed to session identity,
+friction catalogs with per-message citations, artifact extraction tying the user to
+their PRs and tickets, verbatim transcripts routed through a third-party model to
+do the scoring, consent held at the org level, no surface where the individual is
+told. The careful part is the comments. The shipped part is the pipeline. Both are
+in the source. The line was identified and then crossed.
+
+### Bossware or data collection
+
+The pipeline's stated purpose is data collection: it is named advanced analytics,
+the org opts in, the classifications feed product insight. That is the label.
+
+Its actual output is a per-session workforce file on a named employee: an expertise
+grade, a friction catalog, and the employee's artifacts (tickets, PRs, documents)
+extracted from the transcript and stored against their session. The employer holds
+the consent. The worker is the subject. The worker is never told. No surveyed
+vendor discloses per-user productivity metrics derived from AI-scored transcripts.
+
+So the answer is both, with the shape deciding which it really is. Classic bossware
+is screenshots and keystroke logs. This is the modern version of the same
+relationship: no screenshots needed when you can grade the person's skill, catalog
+their struggles, and map their output, all inside the tool they were told to use.
+Data collection wearing the org's clothes, doing bossware's job.
+
+### The consent inversion
+
+The thesis, stated once: **the consent subject is the organization, the judged
+subject is the individual, and the individual is structurally absent from both the
+control and the notice.** Every surveyed vendor gives the individual a veto in the
+sensitive direction: Cline lets admins only force telemetry OFF, Cursor Business
+forces Privacy Mode ON (toward less collection), Copilot exempts Business and
+Enterprise tiers contractually. Droid is the only structure where the party being
+scored has no control, no switch, and no notice, and where the served config lets
+the vendor change what gets judged without a release. That is not a missing
+feature. It is the design.
+
 ## DUBIOUSNESS VERDICT (judgment, grounded in published practice)
 
 Expanded 2026-10-20 from web research. Every comparative claim below carries a
