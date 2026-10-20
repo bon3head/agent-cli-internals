@@ -2,13 +2,17 @@
 
 **Your AI coding tools look like chat boxes. Underneath, they're platforms with hidden control panels. This repo documents the panels.**
 
-Four CLIs were taken apart byte by byte: Google's `agy` (Antigravity), Anthropic's `claude` (Claude Code), OpenAI's `codex`, and Meta's `muse` (Muse Code, prompts pass only). No live model call was made and no real request left the box. Everything here comes from the text baked into the programs, the settings they ship with, and the self-describing specs some of them carry. (2026-10-20: Claude Code's served prompts were additionally captured by running the CLI against a local stub endpoint returning canned responses; that material is marked "as served".)
+Five CLIs were taken apart byte by byte: Google's `agy` (Antigravity), Anthropic's `claude` (Claude Code), OpenAI's `codex`, Meta's `muse` (Muse Code, prompts pass only), and Factory's `droid` (Factory Droid, first public map of the binary). No live model call was made and no real request left the box. Everything here comes from the text baked into the programs, the settings they ship with, and the self-describing specs some of them carry. (2026-10-20: Claude Code's served prompts were additionally captured by running the CLI against a local stub endpoint returning canned responses; that material is marked "as served". Droid was additionally run in a sandbox HOME against a local loopback stub, strace-verified, for its as-served capture; Droid's own module-graph record store yielded 50.5 MB of its original unminified source, which the full pass was then re-gated against.)
 
-**Versions:** `agy` v1.3.1 · `claude` 2.1.287 · `codex` 0.155.1 · `muse` 1.4.7
+**Versions:** `agy` v1.3.1 · `claude` 2.1.287 · `codex` 0.155.1 · `muse` 1.4.7 · `droid` v0.245.0
 **Also here:** [methodology](methodology/README.md) · [eureka log](eureka-log.md) · [PoCs](pocs/) · [diagrams](diagrams/) · [full prompt texts](prompts/) · [honesty box](#honesty-box) (caveats and what was not verified)
 
 ## Start here: the influential bits
 
+- [The binary ships its own source: 50.5 MB of original Droid modules recovered from the Bun module graph](findings/droid/03-source-recovery-method.md) (the extraction method, including the two wrong turns)
+- [Factory-Judge: one persona, three rubrics, and it scores the user](findings/droid/04-judges-and-localsignals.md) ("Judge the user, not the assistant"; org-controlled consent gate)
+- [Droid prompt corpus](prompts/droid.md#3-safety--security) (Shield triage, the shadow risk classifier, analytics judges; full two-level index in [prompts/](prompts/README.md))
+- [Surface ↔ internals crosswalk: read the agent's mind at any moment](findings/droid/crosswalk.md) (every front-facing droid feature mapped 1-1 to its prompt section + mechanism, hyperlinked both ways)
 - [gpt-6-astra `instructions_template`](prompts/codex.md#13-you-are-codex-an-agent-based-on-gpt-6-gpt-6-astra-instructions_template) (gpt-6-astra's full system prompt, byte-exact)
 - [Guardian action-review prompt](prompts/codex.md#21-guardian-action-review-prompt-you-are-judging-one-planned-coding-agent-action) (the judge that approves codex tool calls)
 - [Security Policy template](prompts/codex.md#23-security-policy-template) (codex's security policy is injected, not embedded)
@@ -86,6 +90,19 @@ Tools and their internals:
   - [13. The 0.149.0 → 0.155.1 feature-flag delta + the hidden `--managed-daemon` flag](findings/codex/13-flag-delta-managed-daemon.md)
   - [14. The full prompt corpus: every system prompt the binary ships](findings/codex/14-prompt-corpus.md)
   - [15. Gated rerun: an independent verifier re-checked 226 claims against the frozen bytes](findings/codex/15-gated-rerun.md)
+- **droid (Factory Droid)** · [prompts](prompts/droid.md) · [internal intel](internal-intel/droid.md) · findings:
+  - [01. Config and permissions: 251 envs, the real flag semantics, 167 daemon RPCs, hidden internal tooling](findings/droid/01-config-and-permissions.md)
+  - [02. Telemetry and Sentry: the kill switch exists, the org can override it, Sentry cannot be turned off](findings/droid/02-telemetry.md)
+  - [03. The binary ships its own source tree: Bun module-graph records, 4,999 zstd frames, 43.5 MB](findings/droid/03-source-recovery-method.md)
+  - [04. Factory-Judge: one persona, three rubrics, including a judge that scores the user](findings/droid/04-judges-and-localsignals.md)
+  - [05. Alloy: a per-turn LLM model router with 9 scored capability cards](findings/droid/05-alloy-router.md)
+  - [06. Protocol and auth: LLM gateway, device-code OAuth, keyring, and the session store](findings/droid/06-protocol-and-auth.md)
+  - [07. The script engine, the agent browser, and the internal QA skill everyone got](findings/droid/07-script-engine-and-agent-browser.md)
+  - [08. The registries: 317 flags, 109 cost blocks, 251 envs, 61 paths, 167 daemon methods](findings/droid/08-registries.md)
+  - [09. As served: the dynamic capture (4,844-char exec prompt, 10 vs 11 tools, wire fallbacks)](findings/droid/09-as-served-capture.md)
+  - [10. Safety machinery: Droid Shield's three layers and the shadow risk classifier](findings/droid/10-safety-machinery.md)
+  - [11. The prompt corpus: extraction method, coverage, honest negatives](findings/droid/11-prompt-corpus.md)
+  - [Crosswalk: surface ↔ internals, every feature mapped 1-1 to prompt + mechanism](findings/droid/crosswalk.md)
 - **muse (Meta Muse Code)** · [prompts](prompts/muse.md) · [internal intel](internal-intel/muse.md) · findings:
   - [01. Muse Code: the main prompt ships in two editions, no dedicated safety prompt](findings/muse/01-prompt-corpus.md)
 
@@ -94,6 +111,7 @@ Prompt corpora with their internal category sections:
 - [antigravity](prompts/antigravity.md): [1. Core personas](prompts/antigravity.md#1-core-personas), [2. Subagents & orchestration](prompts/antigravity.md#2-subagents--orchestration), [3. Safety & policy](prompts/antigravity.md#3-safety--policy), [4. Utility prompts](prompts/antigravity.md#4-utility-prompts), [5. Tool-related text](prompts/antigravity.md#5-tool-related-text)
 - [claude-code](prompts/claude-code.md): [0. As served (dynamic capture)](prompts/claude-code.md#0-as-served-dynamic-capture-2026-10-20), [1. Core system prompt](prompts/claude-code.md#1-core-system-prompt), [2. Built-in agents](prompts/claude-code.md#2-built-in-agents), [3. Feature & workflow agents](prompts/claude-code.md#3-feature--workflow-agents), [4. Tool-internal prompts](prompts/claude-code.md#4-tool-internal-prompts), [5. Tool descriptions](prompts/claude-code.md#5-tool-descriptions)
 - [muse](prompts/muse.md): [1. Core personas](prompts/muse.md#1-core-personas), [2. Session & lifecycle](prompts/muse.md#2-session--lifecycle), [3. Safety & policy](prompts/muse.md#3-safety--policy), [4. Tool-related text](prompts/muse.md#4-tool-related-text), [5. Other agent modes](prompts/muse.md#5-other-agent-modes)
+- [droid](prompts/droid.md): [1. Core personas](prompts/droid.md#1-core-personas), [2. Autonomy tiers (PRIORITY SECTION)](prompts/droid.md#2-autonomy-tiers-priority-section), [3. Safety & security](prompts/droid.md#3-safety--security), [4. Subagents & utilities](prompts/droid.md#4-subagents--utilities), [5. Tool-related text](prompts/droid.md#5-tool-related-text), [Annex A: model-router classifier + UTF-16 census](prompts/droid.md#annex-brute2-2026-10-20-the-model-router-classifier-utf-16-corpus-twin-checks), [Annex B: UTF-16LE skill-asset cluster](prompts/droid.md#annex-b-closure-wave-2026-10-20-the-utf-16le-skill-asset-cluster-265525259267817190), [Gate errata + annex](prompts/droid.md#gate-errata--annex-source-recovery-2026-10-20)
 
 More: [methodology](methodology/README.md) · [eureka log](eureka-log.md) · [diagrams](diagrams/) · [PoCs](pocs/)
 
@@ -103,7 +121,8 @@ More: [methodology](methodology/README.md) · [eureka log](eureka-log.md) · [di
 - **Codex documents its own protocol.** One built-in command prints all 102 client-to-server API methods as JSON Schema.
 - **Claude Code's 41MB app was carved out as readable JavaScript.** Permissions, settings, and cloud features are all searchable text now.
 - **The binaries draw the public-vs-internal line themselves.** Mythos 5/5.1 is the internal-only model family; Fable 5/5.1 and GPT-6 Astra are public.
-- **Every system prompt ships in the binary.** Full prompt corpora were extracted for all four tools (135 items): personas, safety judges, subagent libraries. One exception: Codex's Security Policy text is a runtime slot, not embedded.
+- **Every system prompt ships in the binary.** Full prompt corpora were extracted for all five tools: personas, safety judges, subagent libraries (two-level index in [prompts/](prompts/README.md)). Two exceptions: Codex's Security Policy text is a runtime slot, not embedded; Droid has no such injected-policy slot at all.
+- **Factory Droid ships its own source code.** 4,999 zstd frames in its Bun module graph decompress to 43.5 MB of original unminified modules (5,484 files), and a hidden judge persona scores the *user's* expertise from session transcripts with the org holding the consent switch.
 
 ## The three control planes at a glance
 
@@ -192,34 +211,34 @@ The carved sources are in [`carved/`](carved/): the Mythos registry entries as J
 | # | Finding | Tool |
 |---|---------|------|
 | 1 | [The 889-method RPC service map: 30 services from codegen symbols](findings/antigravity/13-rpc-service-map.md) | agy |
-| 2 | [Self-documenting protocol: 102 client-to-server methods from the binary's own schema generator](findings/codex/01-app-server-protocol.md) | codex |
-| 3 | [The full prompt corpus: every system prompt the binary ships](findings/codex/14-prompt-corpus.md) (new: the vendor's own instruction text, byte-exact, including a per-model `instructions_template` for gpt-6-astra) | codex |
-| 4 | [Entire app carved out as 41MB of searchable JavaScript](findings/claude-code/01-bundle-surgery.md) | claude |
-| 5 | [The prompt corpus: no single system prompt, just style preambles plus shared sections](findings/claude-code/17-prompt-corpus.md) (new: proves the system prompt is assembled from fragments, not stored; full security-review protocol recovered; the served prompt itself was captured live on 2026-10-20 and is compact, ~6K chars) | claude |
-| 6 | [Model families: Fable 5/5.1 (public) and Mythos 5/5.1 (internal-only)](findings/claude-code/10-fable-mythos.md) | claude |
-| 7 | [Local control plane: 348 methods, drivable with curl](findings/antigravity/01-local-control-plane.md) | agy |
-| 8 | [The prompt corpus: personas are templates, and a Teamwork swarm ships inside](findings/antigravity/16-prompt-corpus.md) (new: the safety judge's full decision text plus an undocumented multi-agent swarm family) | agy |
-| 9 | [GrowthBook is the experiment SDK: every `tengu_*` gate is a GrowthBook evaluation](findings/claude-code/13-growthbook-experiment-sdk.md) | claude |
-| 10 | [The autonomy roadmap is a config surface: six experimental structs, fully field-recovered](findings/codex/11-roadmap-struct-fields.md) | codex |
-| 11 | [Gated rerun: an independent verifier re-checked 226 claims against the frozen bytes](findings/codex/15-gated-rerun.md) (new: 23 prior claims overturned, analytics default flipped, Sentry DSN and cost endpoint found) | codex |
-| 12 | [Gateway is a full self-hostable HTTP server, not just auth](findings/claude-code/06-gateway-server.md) | claude |
-| 13 | [Per-step safety screen: 3 monitors, server-overridable](findings/antigravity/02-safety-screen.md) | agy |
-| 14 | [Muse Code: the main prompt ships in two editions, no dedicated safety prompt](findings/muse/01-prompt-corpus.md) (new: first byte-level look at Meta's coding CLI) | muse |
-| 15 | [Code-mode host: a Rust binary embedding V8 that runs raw JS cells](findings/codex/04-code-mode-host.md) | codex |
-| 16 | [Permission engine decoded: deny > ask > allow, simulated exactly](findings/claude-code/03-permission-engine.md) | claude |
-| 17 | [Update signing (RSA-4096 SPKI), Datadog sink, event logging](findings/claude-code/16-update-signing-datadog.md) | claude |
-| 18 | [Sanctioned bring-your-own-model path (`AGY_LLM_GATEWAY_*`)](findings/antigravity/12-byo-model-path.md) | agy |
-| 19 | [Cloud Run auto-updater: the real update host](findings/antigravity/15-cloud-run-updater.md) | agy |
-| 20 | [Rate limits are readable AND redeemable (idempotency-keyed reset credits)](findings/codex/07-rate-limits.md) | codex |
-| 21 | [The CLI is its own MCP server; first-party Gmail/GCal hosts](findings/claude-code/07-mcp-plane.md) | claude |
-| 22 | [Unleash: the second flag system](findings/antigravity/14-unleash-flag-system.md) | agy |
-| 23 | [Gateway full route table (18 paths)](findings/claude-code/15-gateway-route-table.md) | claude |
-| 24 | [The code-mode sandbox is exactly 14 injected names (and no more)](findings/codex/12-cell-globals.md) | codex |
-| 25 | [Hidden commands + unregistered `claude daemon`](findings/claude-code/14-hidden-commands.md) | claude |
-| 26 | [Telemetry: three pipelines, no program-level kill switch](findings/antigravity/05-telemetry.md) | agy |
-| 27 | [The 0.149.0 → 0.155.1 feature-flag delta + hidden `--managed-daemon`](findings/codex/13-flag-delta-managed-daemon.md) | codex |
+| 2 | [The binary ships its own source: 50.5 MB of original modules recovered from the Bun module graph](findings/droid/03-source-recovery-method.md) | droid |
+| 3 | [Self-documenting protocol: 102 client-to-server methods from the binary's own schema generator](findings/codex/01-app-server-protocol.md) | codex |
+| 4 | [The full prompt corpus: every system prompt the binary ships](findings/codex/14-prompt-corpus.md) (new: the vendor's own instruction text, byte-exact, including a per-model `instructions_template` for gpt-6-astra) | codex |
+| 5 | [One judge persona, three rubrics, and it scores the user; consent is an org-settings field](findings/droid/04-judges-and-localsignals.md) | droid |
+| 6 | [Entire app carved out as 41MB of searchable JavaScript](findings/claude-code/01-bundle-surgery.md) | claude |
+| 7 | [The prompt corpus: no single system prompt, just style preambles plus shared sections](findings/claude-code/17-prompt-corpus.md) (new: proves the system prompt is assembled from fragments, not stored; full security-review protocol recovered; the served prompt itself was captured live on 2026-10-20 and is compact, ~6K chars) | claude |
+| 8 | [Model families: Fable 5/5.1 (public) and Mythos 5/5.1 (internal-only)](findings/claude-code/10-fable-mythos.md) | claude |
+| 9 | [Local control plane: 348 methods, drivable with curl](findings/antigravity/01-local-control-plane.md) | agy |
+| 10 | [The prompt corpus: personas are templates, and a Teamwork swarm ships inside](findings/antigravity/16-prompt-corpus.md) (new: the safety judge's full decision text plus an undocumented multi-agent swarm family) | agy |
+| 11 | [GrowthBook is the experiment SDK: every `tengu_*` gate is a GrowthBook evaluation](findings/claude-code/13-growthbook-experiment-sdk.md) | claude |
+| 12 | [The autonomy roadmap is a config surface: six experimental structs, fully field-recovered](findings/codex/11-roadmap-struct-fields.md) | codex |
+| 13 | [Gated rerun: an independent verifier re-checked 226 claims against the frozen bytes](findings/codex/15-gated-rerun.md) (new: 23 prior claims overturned, analytics default flipped, Sentry DSN and cost endpoint found) | codex |
+| 14 | [Gateway is a full self-hostable HTTP server, not just auth](findings/claude-code/06-gateway-server.md) | claude |
+| 15 | [Per-step safety screen: 3 monitors, server-overridable](findings/antigravity/02-safety-screen.md) | agy |
+| 16 | [Muse Code: the main prompt ships in two editions, no dedicated safety prompt](findings/muse/01-prompt-corpus.md) (new: first byte-level look at Meta's coding CLI) | muse |
+| 17 | [Code-mode host: a Rust binary embedding V8 that runs raw JS cells](findings/codex/04-code-mode-host.md) | codex |
+| 18 | [Permission engine decoded: deny > ask > allow, simulated exactly](findings/claude-code/03-permission-engine.md) | claude |
+| 19 | [Update signing (RSA-4096 SPKI), Datadog sink, event logging](findings/claude-code/16-update-signing-datadog.md) | claude |
+| 20 | [Sanctioned bring-your-own-model path (`AGY_LLM_GATEWAY_*`)](findings/antigravity/12-byo-model-path.md) | agy |
+| 21 | [Cloud Run auto-updater: the real update host](findings/antigravity/15-cloud-run-updater.md) | agy |
+| 22 | [Rate limits are readable AND redeemable (idempotency-keyed reset credits)](findings/codex/07-rate-limits.md) | codex |
+| 23 | [The CLI is its own MCP server; first-party Gmail/GCal hosts](findings/claude-code/07-mcp-plane.md) | claude |
+| 24 | [Unleash: the second flag system](findings/antigravity/14-unleash-flag-system.md) | agy |
+| 25 | [Gateway full route table (18 paths)](findings/claude-code/15-gateway-route-table.md) | claude |
+| 26 | [The code-mode sandbox is exactly 14 injected names (and no more)](findings/codex/12-cell-globals.md) | codex |
+| 27 | [Hidden commands + unregistered `claude daemon`](findings/claude-code/14-hidden-commands.md) | claude |
 
-Full prompt texts live in [`prompts/`](prompts/). The other finding docs live under [`findings/antigravity/`](findings/antigravity/), [`findings/claude-code/`](findings/claude-code/), [`findings/codex/`](findings/codex/), and [`findings/muse/`](findings/muse/).
+Full prompt texts live in [`prompts/`](prompts/). The other finding docs live under [`findings/antigravity/`](findings/antigravity/), [`findings/claude-code/`](findings/claude-code/), [`findings/codex/`](findings/codex/), [`findings/muse/`](findings/muse/), and [`findings/droid/`](findings/droid/). The droid surface↔internals [crosswalk](findings/droid/crosswalk.md) maps every front-facing feature to its prompt section and mechanism, both ways.
 
 ## For developers
 
@@ -240,7 +259,8 @@ Method, version pins, re-verification, and what was not verified.
 - `agy` v1.3.1 (sha256 `085f43e0…455ef`)
 - `claude` 2.1.287 (244,317,368 bytes, Bun)
 - `codex` 0.155.1 + `codex-code-mode-host` 69MB.
-- `muse` 1.4.7 (`muse-bin-1.4.7-R6101.1`, 363,518,168 bytes). Prompts pass only (2026-10-20). Note: the app-server schema baseline was first captured against 0.149.0 and refreshed to a fresh 0.155.1 emission on the reinforcement pass (finding 13 documents the delta); `gpt-6-astra` is a 0.155.1-era addition.
+- `muse` 1.4.7 (`muse-bin-1.4.7-R6101.1`, 363,518,168 bytes). Prompts pass only (2026-10-20).
+- `droid` v0.245.0 (295,454,688 bytes, sha256 `61ad343a…fa18177cd`, matches Factory's published checksum). Note: the app-server schema baseline was first captured against 0.149.0 and refreshed to a fresh 0.155.1 emission on the reinforcement pass (finding 13 documents the delta); `gpt-6-astra` is a 0.155.1-era addition.
 - Trials re-ran 2026-10-18/19.
 
 **Re-verification.** 38 of 39 trials CONFIRMED live against the installed binaries. 1 is PARTIAL: `claude mcp list` hangs doing live health checks (it functions, but is unbounded without a timeout). All PoCs exit 0. Each finding gives per-byte evidence (offsets, quoted literals) so claims can be re-derived.
@@ -262,6 +282,20 @@ Method, version pins, re-verification, and what was not verified.
 - Codex claims re-gated against the re-pinned binary by a verifier that did not produce them: 188 priors (80 VERIFIED, 40 CORROBORATED, 45 UNVERIFIED, **23 DISAGREEMENT**) and 38 new claims (32 VERIFIED, 3 CORROBORATED, 3 DISAGREEMENT).
 - **Corrections folded into the docs in place, dated 2026-10-20:** analytics default direction (finding 08), six-variant login blob and no-`id_token` tokens run (finding 06), ShellEnvironmentPolicy field list (finding 05), the `updater failed` literal (finding 13). Finding 15 is the full ledger.
 - Prompt corpora extracted for all four tools (135 items). Muse is new to the repo: prompts only, no control-plane or telemetry pass yet.
+
+**Droid deep pass (2026-10-20; first public map of the binary).**
+
+- Four lanes (prompts/tools, telemetry, config, protocol) → two silo gap-audits → three
+  brute-force waves → dynamic as-served capture (sandbox HOME + loopback stub, strace-verified,
+  zero external hits) → closure wave → **source recovery** (Bun module-graph record store:
+  4,999 zstd frames → 43.5 MB of original unminified source; 5,484 modules parse, recovered
+  rubric builders generate sentences found byte-for-byte in the binary).
+- All lane-doc claims re-gated against the recovered source: 64 claim clusters:
+  42 VERIFIED, 5 CORROBORATED, 14 CORRECTED (18 dated errata filed), 3 UNVERIFIED.
+  Wave-3 silo audit verdict: **READY-WITH-FIXES** (fixes filed).
+- Honest residuals: software-factory worker prompts unrecovered (endpoints + gate wiring
+  only); which copy of dual-stored prompts the served pipeline loads (static load path
+  settled, no runtime trace).
 
 **What was NOT verified.**
 
