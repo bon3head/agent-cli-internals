@@ -245,6 +245,58 @@ scored has no control, no switch, and no notice, and where the served config let
 the vendor change what gets judged without a release. That is not a missing
 feature. It is the design.
 
+## THE POLICY VS THE PIPELINE
+
+This section compares Factory's published privacy notice against what the source
+code shows the pipeline does. Read on 2026-10-20; verified by a second reader.
+
+**Identity first, because there is a lookalike.** The genuine policy is at
+`factory.com/privacy-policy`, issued by The San Francisco AI Factory Inc. (dba
+Factory), last updated August 20, 2026. A separate company, "Factory AI Pty Ltd"
+(Australia), hosts a privacy policy at `f7i.ai`. It is not the Droid maker's
+policy and must never be cited as such.
+
+**What the policy covers, honestly.** Its closest language to the pipeline is a
+purpose called "Improving Factory," which lists "product analytics, testing
+features, and understanding user sessions and usage patterns" under Legitimate
+Interests. That is real disclosure of analytics, and it is not nothing: a
+session-counting, usage-pattern product-analytics program fits under that
+umbrella without strain. The policy also describes repo metadata collection, but
+only when the user wires up a direct GitHub/GitLab integration plus remote
+containers use. Third parties are named (AWS, Google for analytics and SSO,
+GitHub, Webflow, Zapier, Stripe). Retention is stated: archives up to 10 years
+after last use.
+
+**What the policy does not cover.** Nowhere does it describe CLI usage data,
+session transcript content, AI scoring of any kind, or user profiling. The
+closest word it gets to the pipeline is "sessions." What the source shows
+(THE WATCHING, THE GRADING, THE SENDING above) is: up to 500,000 characters of
+the user's verbatim conversation routed through Factory's gateway to a
+third-party inference model (`gpt-6-luna` by compiled-in default) for the
+purpose of grading the user, with per-session novice-to-expert labels persisted
+to Factory keyed to session identity. None of that appears in the policy. The
+policy's US-state rights section even acknowledges a right to opt out of
+"profiling," while describing no profiling practice anywhere in the document.
+
+**The gap, stated exactly.** A user who reads this policy end to end has no way
+to learn that their sessions are graded for their expertise, that their
+transcript goes verbatim to a third-party model for that grading, or that the
+consent switch sits with their org and not with them. The policy discloses
+generic analytics; the pipeline is specific in four ways the policy never
+mentions: what content (transcripts), what scoring (user expertise), whose
+model (third party), and whose consent (the employer's).
+
+**Calibration.** This dichotomy is about notice, not intent. The legitimate-
+interests framing may well cover this analytics program as a matter of law, and
+nothing here is a claim of illegality: we are not the company's lawyers, and
+the policy was written against a legal standard we do not adjudicate. What we
+claim is the notice gap, and it is verifiable from both sides: the policy text
+on one side, the recovered source (`packages/utils/src/signals/rubrics.ts`,
+`src/services/local-signals/`, the served-config gate in `model.ts:49-52`) on
+the other. A notice that covers "user sessions and usage patterns" and a
+pipeline that verbatim-transcript-scores the user are not the same disclosure,
+even if they share a legal umbrella.
+
 ## DUBIOUSNESS VERDICT (judgment, grounded in published practice)
 
 Expanded 2026-10-20 from web research. Every comparative claim below carries a
